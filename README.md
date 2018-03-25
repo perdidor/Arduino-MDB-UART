@@ -1,3 +1,5 @@
+
+
 # Arduino-MDB-UART
 Atmega1284 PLC acts as man-in-the-middle between MDB peripheral and master PC (VMC) serial port.
 
@@ -11,3 +13,6 @@ You can use any other Atmega PLC with this code, having 2 hardware UARTs on boar
 Electric principal circuit included see MDB_Master.pdf (Copyright (C) 2001 by BonusData AG).
 
 IMPORTANT: I RECOMMEND TO CHANGE R4 from 10K to 2.2K as it cannot drive MDB levels when there are more than 1 peripheral device on bus.
+
+# Credits
+Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
