@@ -3,6 +3,7 @@
 Atmega1284 PLC acts as man-in-the-middle between MDB peripheral and master PC (VMC) serial port.
 Command received from master PC (VMC) via serial port (RXD1 on AtMega1284), then sent to MDB serial port (TXD0) with 9-bit format.
 Answers from peripheral devices receivet via RXD0 converted to string representation of hex bytes sent to Master PC (TXD1).
+First byte of answer sent to VMC is the address of peripheral device so VMC "knows" which device responds.
 
 AGAIN:
 Master PC writes command as bytes, including CHK byte (see MDB datasheet included), but receives answers as text with EOL. It's important.
