@@ -18,7 +18,9 @@ It will be simple to repeat, all components are available and cheap.
 You can use any other Atmega PLC with this code, having 2 hardware UARTs on board. I used AtMEGA1284P-PU as it has DIP (through-hole) design, which is more friendly for assembling and soldering.
 Electric principal circuit included see MDB_Master.pdf (Copyright (C) 2001 by BonusData AG).
 
-IMPORTANT: I RECOMMEND TO CHANGE R4 from 10K to 2.2K as it cannot drive MDB levels when there are more than 1 peripheral device on bus.
+IMPORTANT:
+1. I RECOMMEND TO CHANGE R4 from 10K to 2.2K as it cannot drive MDB levels when there are more than 1 peripheral device on bus.
+2. You will need only right part of schematics to connect it directly to AtMEGA1284 TXD0 and RXD0 pins, instead of corresponding MAX232 pins #9 and #10.
 
 # Credits
 Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
