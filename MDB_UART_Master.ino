@@ -1,6 +1,18 @@
 //------------------------------------------------------------------------------
-// CONSTANTS
+// Arduino as MDB Master
+// 25.03.2018 Copyright Vladimir Pakhomov ga3@yandex.ru
+// inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
+//
+// This is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// For full text of GPL see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
+
+
+// CONSTANTS
 #define BAUD 9600
 
 #define ADDRESS_MASK      (0xF8)  // section 2.3 - top five bits of address are actually address
