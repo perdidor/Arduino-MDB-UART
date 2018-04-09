@@ -44,16 +44,16 @@ struct MDB_Byte {
 };
 
 //array of *POLL* commands for every device type
-byte POLL_ADDRESS[10]{0x0B, 0x12, 0x1A, 0x33, 0x42, 0x52, 0x5B, 0x62, 0x6A, 0x72};
+byte POLL_ADDRESS[10]{0x0B, 0x12, 0x1A, 0x33, 0x42, 0x4A, 0x52, 0x5B, 0x62, 0x73};
 
-byte EXT_UART_BUFFER[37]; //incoming buffer for reveive data from VMC
-struct MDB_Byte MDB_BUFFER[37]; //incoming buffer for reveive data from MDB peripheral
+byte EXT_UART_BUFFER[37]; //incoming buffer for receive data from VMC
+struct MDB_Byte MDB_BUFFER[37]; //incoming buffer for receive data from MDB peripheral
 int EXT_UART_BUFFER_COUNT;
 volatile int MDB_BUFFER_COUNT;
 
 //MDB receiving flags
-int rcvcomplete;
-int mdboverflow;
+int rcvcomplete;  //MDB message receive completed flag
+int mdboverflow;  //MDB message receive error flag
 
 
 
