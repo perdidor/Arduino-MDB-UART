@@ -20,7 +20,7 @@ Electric principal circuit included see MDB_Master.pdf (Copyright (C) 2001 by Bo
 
 IMPORTANT:
 1. I RECOMMEND TO CHANGE R4 from 10K to 2.2K as it cannot drive MDB levels when there are more than 1 peripheral device on bus.
-2. You will need only right part of schematics to connect it directly to AtMEGA1284 TXD0 and RXD0 pins, instead of corresponding MAX232 pins #9 and #10. Full schematics included as requested.
+2. See "Full Schematics.png" for wiring diagram.
 3. Don't forget common GND)
 
 # Credits
