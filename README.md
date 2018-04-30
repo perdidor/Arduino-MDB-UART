@@ -19,9 +19,8 @@ You can use any other Atmega PLC with this code, having 2 hardware UARTs on boar
 Electric principal circuit included see MDB_Master.pdf (Copyright (C) 2001 by BonusData AG).
 
 IMPORTANT:
-1. I RECOMMEND TO CHANGE R4 from 10K to 2.2K as it cannot drive MDB levels when there are more than 1 peripheral device on bus.
-2. See "Full Schematics.png" for wiring diagram.
-3. Don't forget common GND)
+1. I RECOMMEND TO CHANGE R4 from 10K to 2.2K as it cannot drive MDB levels when there are more than 1 peripheral device on bus. See "Full Schematics.png" for actual wiring diagram (tested and worked).
+2. Don't forget common GND.
 
 # Credits
 Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
