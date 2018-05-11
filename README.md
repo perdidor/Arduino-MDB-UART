@@ -6,8 +6,11 @@ First byte of answer sent to VMC is the address of peripheral device so VMC "kno
 
 AGAIN:
 Master PC writes command as bytes, including CHK byte (see MDB datasheet included), but receives answers as text with EOL. It's important.
+"MDB-RS232-Test" folder contains test software sources (C#).
 
-Breadboard demo: https://youtu.be/YV8bc2hhqS0
+Breadboard live demo with ICT A7\V7 bill validator and Currenza C2 Blue coin changer:
+
+[![Video](http://img.youtube.com/vi/YV8bc2hhqS0/0.jpg)](http://www.youtube.com/watch?v=YV8bc2hhqS0)
 
 # History
 Once I needed to manage the MDB devices from a PC. Googling brought to Aliexpress, where a lot of adapters are sold at a price of $ 50 or more. Further research showed a complete lack of solutions that can be repeated at home, so I had to do it myself for the sake of economy.
