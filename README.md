@@ -12,6 +12,9 @@ Breadboard live demo with ICT A7\V7 bill validator and Currenza C2 Blue coin cha
 
 [![Video](http://img.youtube.com/vi/YV8bc2hhqS0/0.jpg)](http://www.youtube.com/watch?v=YV8bc2hhqS0)
 
+# HOW CAN I USE IT?
+It's for connecting PC or other computer with "usual" 8-bit COM port ("Master", "VMC") to MDB devices (slaves such as coin charger, bill validator etc...), to control these devices and receive messages from them. It's NOT for emulating coin charger or something like it (for these purposes you'll need another adapter).
+
 # History
 Once I needed to manage the MDB devices from a PC. Googling brought to Aliexpress, where a lot of adapters are sold at a price of $ 50 or more. Further research showed a complete lack of solutions that can be repeated at home, so I had to do it myself for the sake of economy.
 The cost of the finished device will not exceed $ 20. I hope this project will affect the prices as they too expensive (imho).
