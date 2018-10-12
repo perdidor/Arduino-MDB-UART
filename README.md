@@ -17,8 +17,7 @@ It's for connecting PC or other computer with "usual" 8-bit COM port ("Master", 
 
 # History
 Once I needed to manage the MDB devices from a PC. Googling brought to Aliexpress, where a lot of adapters are sold at a price of $ 50 or more like this: http://www.waferstar.com/en/MDB-PC.html or similar.
-~~Further research showed a complete lack of solutions that can be repeated at home, so I had to do it myself for the sake of economy.
-~~The cost of the finished device will not exceed $ 20. ~~I hope this project will affect the prices as they too expensive (imho)~~I just want to punish these hucksters for irrepressible greed.
+The cost of the finished device will not exceed $ 20. I just want to punish these hucksters for irrepressible greed.
 
 # Get Started
 It will be simple to repeat, all components are available and cheap.
