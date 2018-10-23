@@ -25,7 +25,7 @@ It will be simple to repeat, all components are available and cheap. "PCB LayOut
 
 PCB design included is one-sided FR4 70x80mm:
 
-<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB_layout.JPG" width="360">
+<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB_layout1.JPG" width="360">
 
 # Credits
 Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
