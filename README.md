@@ -22,6 +22,7 @@ The cost of the finished device will not exceed $ 20. I just want to punish thes
 
 # Get Started
 It will be simple to repeat, all components are available and cheap. "PCB LayOut Designer 6.0" software required to view and edit PCB design file "mdb-rs232.lay6".
+Repository contains enclosure files for 3D printing.
 
 PCB design included is one-sided FR4 70x80mm:
 
