@@ -1,0 +1,35 @@
+* Parts list file:"mdb-rs232.lay6" / 23.10.2018 12:05:50
+*
+* ¹  	Type 	Value	Comment	Layer 
+*
+1	C1	22pF		Top
+2	C2	22pF		Top
+3	C3	330pF		Top
+4	C4	100pF		Top
+5	C5	0.1uF		Top
+6	C7	0.1uF		Top
+7	C8	0.1uF		Top
+8	C9	0.1uF		Top
+9	C10	0.1uF		Top
+10	Conn1	DS1073-01-2x3-MR2T6		Top
+11	Conn2	Xinya 300-022-12	PWR In	Top
+12	Conn3	DS1021-1x5	ISP connector	Top
+13	Conn4	DS1037-9F		Top
+14	IC1	AtMEGA1284P-PU		Top
+15	IC2	MAX232A		Top
+16	LED1	10mA max, Green	MDB power	Top
+17	LED1	10mA max, Red	MDB master send	Top
+18	LED1	10mA max, Amber	MDB master receive	Top
+19	Q1	16.000MHz		Top
+20	R1	2.2K		Top
+21	R2	10K		Top
+22	R3	390		Top
+23	R4	680		Top
+24	R5	470		Top
+25	R6	470		Top
+26	R7	4K7		Top
+27	R8	39		Top
+28	R9	10K		Top
+29	VR1	L78S05CV		Top
+30	VT1	2N4403		Top
+31	VT2	2N4403		Top
