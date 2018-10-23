@@ -23,9 +23,9 @@ The cost of the finished device will not exceed $ 20. I just want to punish thes
 It will be simple to repeat, all components are available and cheap. "PCB LayOut Designer 6.0" software required to view and edit PCB design file "mdb-rs232.lay6".
 You can use any other Atmega PLC with this code, having 2 hardware UARTs on board. AtMEGA1284P-PU recommended for beginners as it has DIP (through-hole) design, which is more friendly for assembling and soldering.
 
-IMPORTANT:
-1. I RECOMMEND TO CHANGE R4 from 10K to 2.2K as it cannot drive MDB levels when there are more than 1 peripheral device on bus. See "Full Schematics.png" for actual wiring diagram (tested and worked).
-2. Don't forget common GND.
+PCB design included is one-sided FR4 70x80mm:
+
+<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB_layout.JPG" width="360">
 
 # Credits
 Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
