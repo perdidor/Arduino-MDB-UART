@@ -20,7 +20,7 @@ Once I needed to manage the MDB devices from a PC. Googling brought to Aliexpres
 The cost of the finished device will not exceed $ 20. I just want to punish these hucksters for irrepressible greed.
 
 # Get Started
-It will be simple to repeat, all components are available and cheap.
+It will be simple to repeat, all components are available and cheap. "PCB LayOut Designer 6.0" software required to view and edit PCB design file "mdb-rs232.lay6".
 You can use any other Atmega PLC with this code, having 2 hardware UARTs on board. AtMEGA1284P-PU recommended for beginners as it has DIP (through-hole) design, which is more friendly for assembling and soldering.
 
 IMPORTANT:
