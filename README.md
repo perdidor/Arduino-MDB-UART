@@ -3,6 +3,7 @@ Atmega1284 PLC acts as man-in-the-middle between MDB peripheral and master PC (V
 Command received from master PC (VMC) via serial port (RXD1 on AtMega1284), then sent to MDB serial port (TXD0) with 9-bit format.
 Answers from peripheral devices received via RXD0 converted to string representation of hex bytes sent to Master PC (TXD1).
 First byte of answer sent to VMC is the address of peripheral device so VMC "knows" which device responds.
+You can use any other Atmega PLC with this code, having 2 hardware UARTs on board. AtMEGA1284P-PU recommended for beginners as it has DIP (through-hole) design, which is more friendly for assembling and soldering.
 
 AGAIN:
 Master PC writes command as bytes, including CHK byte (see MDB datasheet included), but receives answers as text with EOL. It's important.
@@ -21,7 +22,6 @@ The cost of the finished device will not exceed $ 20. I just want to punish thes
 
 # Get Started
 It will be simple to repeat, all components are available and cheap. "PCB LayOut Designer 6.0" software required to view and edit PCB design file "mdb-rs232.lay6".
-You can use any other Atmega PLC with this code, having 2 hardware UARTs on board. AtMEGA1284P-PU recommended for beginners as it has DIP (through-hole) design, which is more friendly for assembling and soldering.
 
 PCB design included is one-sided FR4 70x80mm:
 
