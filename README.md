@@ -22,9 +22,11 @@ The cost of the finished device will not exceed $ 20. I just want to punish thes
 
 # Get Started
 It will be simple to repeat, all components are available and cheap. "PCB LayOut Designer 6.0" software required to view and edit PCB design file "mdb-rs232.lay6".
-Repository contains enclosure files for 3D printing.
+Repository contains enclosure files for 3D printing. Assembled enclosure (render):
 
-PCB design included is one-sided FR4 70x80mm:
+<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/Enclosure/assembly.JPG" width="600">
+
+PCB design included is one-sided FR4 70x80mm (render):
 
 <img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB_layout1.JPG" width="360">
 
