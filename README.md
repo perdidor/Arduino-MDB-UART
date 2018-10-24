@@ -19,7 +19,7 @@ Once I needed to manage the MDB devices from a PC. Googling brought to Aliexpres
 The cost of the finished device will not exceed $ 20. I just want to punish these hucksters for irrepressible greed.
 
 # Get Started
-It will be simple to repeat, all components are available and cheap (see parts_list.txt). "PCB LayOut Designer 6.0" software required to view and edit PCB design file "mdb-rs232.lay6".
+It will be simple to repeat, all components are available and cheap (see parts_list.txt). "Sprint Layout 6.0" software required to view and edit PCB design file "mdb-rs232.lay6".
 
 **IMPORTANT**:
 - LED mounting height 14mm;
