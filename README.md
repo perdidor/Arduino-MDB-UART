@@ -29,7 +29,7 @@ Repository contains enclosure files for 3D printing. Assembled enclosure (render
 
 PCB design included is one-sided FR4 70x80mm (render):
 
-<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB_layout3.JPG" width="360">
+<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB_layout4.JPG" width="360">
 
 # Credits
 Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
