@@ -21,7 +21,9 @@ The cost of the finished device will not exceed $ 20. I just want to punish thes
 # Get Started
 It will be simple to repeat, all components are available and cheap (see parts_list.txt). "PCB LayOut Designer 6.0" software required to view and edit PCB design file "mdb-rs232.lay6".
 
-**IMPORTANT**: LED mounting height 15mm.
+**IMPORTANT**:
+- LED mounting height 14mm;
+- DO NOT use device without radiator.
 
 Repository contains enclosure files for 3D printing. Assembled enclosure (render, more in Enclosure folder):
 
