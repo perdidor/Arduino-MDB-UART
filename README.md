@@ -27,11 +27,14 @@ It will be simple to repeat, all components are available and cheap (see parts_l
 - LED mounting height 14mm;
 - DO NOT use device without radiator.
 
-Repository contains enclosure files for 3D printing. Assembled enclosure (render, more in Enclosure folder):
+Repository contains enclosure files for 3D printing.
+Assembled enclosure (render, more in Enclosure folder):
+Собранный корпус выглядит так (рендер, остальные в том же каталоге):
 
 <img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/Enclosure/assembly.JPG" width="600">
 
 PCB design included is one-sided FR4 70x80mm (render):
+Внешний вид печатной платы 70х80мм (рендер):
 
 <img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB_layout4.JPG" width="360">
 
@@ -56,21 +59,13 @@ Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
 При проектировании торгового автомата понадобилось управлять купюроприемником. На Алиэкспресс цены от 50 баксов и выше (например, http://www.waferstar.com/en/MDB-PC.html), денег стало жалко отдавать барыгам и пришлось сделать свое устройство.
 
 # Приступаем
-Это не очень трудно, компоненты дешевы и доступны (http://www.chipdip.ru). Обычно получается дешевле 20 долларов (без корпуса).
+Это не очень трудно, компоненты дешевы и доступны (список компонентов в файле parts_list.txt, магазин запчастей с доставкой http://www.chipdip.ru). Обычно получается дешевле 20 долларов (без корпуса).
 Файл дизайна печатной платы "mdb-rs232.lay6" для просмотра требует ПО "Sprint Layout 6.0"
-
 
 **ВАЖНО**:
 - Высота установки светодиодов 14мм;
 - Без радиатора на регуляторе напряжения использовать не рекомендуется.
 
-Репозиторий содержит файлы для заказа или самостоятельной печати корпуса устройства на 3D принтере (каталог "Enclosure"). Собранный корпус выглядит так (рендер, остальные в том же каталоге):
+Репозиторий содержит файлы для заказа или самостоятельной печати корпуса устройства на 3D принтере (каталог "Enclosure"). 
 
-<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/Enclosure/assembly.JPG" width="600">
-
-Внешний вид печатной платы 70х80мм (рендер):
-
-<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB_layout4.JPG" width="360">
-
-# Credits
-Использованы идеи проекта MDB-Sniffer https://github.com/MarginallyClever/MDB-Sniffer
+Рендеры корпуса и печатной платы в английской версии выше.
