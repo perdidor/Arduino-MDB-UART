@@ -28,19 +28,22 @@ It will be simple to repeat, all components are available and cheap (see parts_l
 - DO NOT use device without radiator.
 
 Repository contains enclosure files for 3D printing.
-Assembled enclosure (render, more in Enclosure folder):
-Собранный корпус выглядит так (рендер, остальные в том же каталоге):
+
+Assembled enclosure (render, more in Enclosure folder)
+Собранный корпус (рендер, остальные в том же каталоге)
 
 <img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/Enclosure/assembly.JPG" width="600">
 
-PCB design included is one-sided FR4 70x80mm (render):
-Внешний вид печатной платы 70х80мм (рендер):
+PCB design included is one-sided FR4 70x80mm (render)
+Внешний вид печатной платы 70х80мм (рендер)
 
 <img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB_layout4.JPG" width="360">
 
 # Credits
 Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
 
+
+**========================End of English version==========================**
 
 # Конвертер MDB-UART на базе Arduino
 Микроконтроллер Atmega1284 или любой другой, имеющий два аппаратных UART на борту, может использоваться как конвертер между обычным компьютером или другим устройством с обычным RS-232 портом, и периферийными устройствами, работающими по протоколу MDB. Он разгружает управляющий компьютер от задач, связанных с опросом шины MDB и конвертированием между 9 и 8 битным форматом, обеспечивает соответствие временным ограничениям протокола и эффективно использует аппаратные прерывания.
