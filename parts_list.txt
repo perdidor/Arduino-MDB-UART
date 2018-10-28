@@ -1,6 +1,6 @@
 * Parts list file:"mdb-rs232.lay6" / 23.10.2018 12:05:50
 *
-* น  	Type 	Value	Comment	Layer 
+* ยน  	Type 	Value	Comment	Layer 
 *
 1	C1	22pF		Top
 2	C2	22pF		Top
@@ -17,9 +17,9 @@
 13	Conn4	DS1037-9F		Top
 14	IC1	AtMEGA1284P-PU		Top
 15	IC2	MAX232A		Top
-16	LED1	10mA max, Green	MDB power	Top
-17	LED1	10mA max, Red	MDB master send	Top
-18	LED1	10mA max, Amber	MDB master receive	Top
+16	LED1	5mm dia, 10mA max, Green	MDB power	Top
+17	LED1	5mm dia, 10mA max, Red	MDB master send	Top
+18	LED1	5mm dia, 10mA max, Amber	MDB master receive	Top
 19	Q1	16.000MHz		Top
 20	R1	2.2K		Top
 21	R2	10K		Top
