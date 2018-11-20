@@ -29,8 +29,20 @@ namespace MDB_RS232_Test
 
         private void ListPorts()
         {
+            SerialSelect.Items.Clear();
+            SerialSelect.Items.Add("Select...");
+            SerialSelect.SelectedIndex = 0;
             SerialSelect.Items.AddRange(SerialPort.GetPortNames());
         }
 
+        private void OKButton_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void SerialSelect_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            OKButton.Enabled = (SerialSelect.SelectedIndex > 0);
+        }
     }
 }
