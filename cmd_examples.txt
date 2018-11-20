@@ -1,0 +1,46 @@
+WARNING!!! These commands are string representation of HEX bytes of MDB commands. They will be converted to byte array when sending to MDB
+by test software included.
+i.e. "34ffff000032" means:
+*34 - address\command byte (34h & F7h (address mask) = 30h (address of bill validator))
+ffff - two bytes enable bill types accepting all types (all bits are set to 1)
+0000 - two bytes enable bill types escrow all types (all bits are set to 0)
+32 (last byte) -  MDB checksum ((34h + ffh + ffh + 00h + 00h) & FFh = 32, only lower 8 bits are checksum)
+
+* - 9th bit set to 1
+
+====Bill Validator commands====
+Enable acceptance all bill types (escrow feature disabled)
+34ffff000032
+
+Enable acceptance all bill types (escrow feature enabled)
+34ffffffff30
+
+Disable acceptance all bill types
+340000000034
+
+Return bill in escrow position
+350035
+
+Stack bill in escrow position
+350136
+
+Reset bill validator (all bill acceptance and escrow will be disabled)
+3030
+
+====Coin Changer commands====
+Enable acceptance all coin types (manual dispense feature enabled)
+0c00ff00ff0a
+
+Disable acceptance all coin types (manual dispense feature enabled)
+0c000000ff0b
+
+Payout exact sum value=10 (extended command, check your device datasheet for compatibility)
+0f021425
+where 14h is doubled sum to dispense (14h = 20DEC)
+
+Request tube status
+0a0a
+
+Reset changer (coin accepting will be disabled)
+0808
+//
