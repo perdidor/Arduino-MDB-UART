@@ -25,7 +25,7 @@ namespace MDB_RS232_Test
 
         private string ByteArrayToString(byte[] ba)
         {
-            StringBuilder hex = new StringBuilder(ba.Length * 2);
+            StringBuilder hex = new StringBuilder(ba.Length * 3);
             foreach (byte b in ba)
                 hex.AppendFormat("{0:x2} ", b);
             string tmpstr = hex.ToString();
