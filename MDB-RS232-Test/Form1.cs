@@ -191,7 +191,7 @@ namespace MDB_RS232_Test
 
         private void EnableSendButton()
         {
-            SendButton.Enabled = (IsCommandValid() && (ComPort != null));
+            SendButton.Enabled = ((!checkcmd.Checked || IsCommandValid()) && (ComPort != null));
         }
 
         private void Form1_Load(object sender, EventArgs e)

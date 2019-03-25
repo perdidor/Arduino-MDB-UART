@@ -1,0 +1,11 @@
+c:\Users\root\Source\Repos\Arduino-MDB-UART\MDB-RS232-Test\bin\Debug\MDB-RS232-Test.exe.config
+c:\Users\root\Source\Repos\Arduino-MDB-UART\MDB-RS232-Test\bin\Debug\MDB-RS232-Test.exe
+c:\Users\root\Source\Repos\Arduino-MDB-UART\MDB-RS232-Test\bin\Debug\MDB-RS232-Test.pdb
+c:\Users\root\Source\Repos\Arduino-MDB-UART\MDB-RS232-Test\obj\Debug\MDB-RS232-Test_Raw_Data.csprojAssemblyReference.cache
+c:\Users\root\Source\Repos\Arduino-MDB-UART\MDB-RS232-Test\obj\Debug\MDB_RS232_Test.Form1.resources
+c:\Users\root\Source\Repos\Arduino-MDB-UART\MDB-RS232-Test\obj\Debug\MDB_RS232_Test.Properties.Resources.resources
+c:\Users\root\Source\Repos\Arduino-MDB-UART\MDB-RS232-Test\obj\Debug\MDB_RS232_Test.SerialSettingsForm.resources
+c:\Users\root\Source\Repos\Arduino-MDB-UART\MDB-RS232-Test\obj\Debug\MDB-RS232-Test_Raw_Data.csproj.GenerateResource.cache
+c:\Users\root\Source\Repos\Arduino-MDB-UART\MDB-RS232-Test\obj\Debug\MDB-RS232-Test_Raw_Data.csproj.CoreCompileInputs.cache
+c:\Users\root\Source\Repos\Arduino-MDB-UART\MDB-RS232-Test\obj\Debug\MDB-RS232-Test.exe
+c:\Users\root\Source\Repos\Arduino-MDB-UART\MDB-RS232-Test\obj\Debug\MDB-RS232-Test.pdb

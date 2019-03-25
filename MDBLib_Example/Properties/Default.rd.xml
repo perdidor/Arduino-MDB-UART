@@ -1,0 +1,31 @@
+<!--
+    Этот файл содержит директивы среды выполнения, используемые .NET Native. Значения по умолчанию, указанные здесь, подходят для большинства
+ разработчиков. Но вы можете изменить эти параметры, чтобы изменить поведение оптимизатора .NET
+    Native.
+
+    Директивы среды выполнения задокументированы по адресу https://go.microsoft.com/fwlink/?LinkID=391919.
+
+    Полное разрешение отражения для App1.MyClass и всех его открытых и закрытых членов
+    <Type Name="App1.MyClass" Dynamic="Required All"/>
+
+    Разрешение динамического создания конкретного экземпляра AppClass<T> в System.Int32
+    <TypeInstantiation Name="App1.AppClass" Arguments="System.Int32" Activate="Required Public" />
+
+    Использование директивы Namespace для применения политики отражения ко всем типам в определенном пространстве имен
+    <Namespace Name="DataClasses.ViewModels" Serialize="All" />
+-->
+
+<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+  <Application>
+    <!--
+      Элемент Assembly с именем "*Application*" (Name="*Application*") применяется ко всем сборкам в
+      пакете приложения. Звездочки не являются подстановочными знаками.
+    -->
+    <Assembly Name="*Application*" Dynamic="Required All" />
+    
+    
+    <!-- Добавьте сюда директивы среды выполнения, относящиеся к приложению. -->
+
+
+  </Application>
+</Directives>

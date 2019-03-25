@@ -40,6 +40,7 @@
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.CmdComboBox = new System.Windows.Forms.ComboBox();
             this.button2 = new System.Windows.Forms.Button();
+            this.checkcmd = new System.Windows.Forms.CheckBox();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -145,11 +146,24 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
+            // checkcmd
+            // 
+            this.checkcmd.AutoSize = true;
+            this.checkcmd.Checked = true;
+            this.checkcmd.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkcmd.Location = new System.Drawing.Point(479, 306);
+            this.checkcmd.Name = "checkcmd";
+            this.checkcmd.Size = new System.Drawing.Size(119, 17);
+            this.checkcmd.TabIndex = 7;
+            this.checkcmd.Text = "Check command";
+            this.checkcmd.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(618, 371);
+            this.Controls.Add(this.checkcmd);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.CmdComboBox);
             this.Controls.Add(this.statusStrip1);
@@ -183,6 +197,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel3;
         private System.Windows.Forms.ComboBox CmdComboBox;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.CheckBox checkcmd;
     }
 }
 
