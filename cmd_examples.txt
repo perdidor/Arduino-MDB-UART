@@ -3,7 +3,7 @@ by test software included.
 i.e. "34ffff000032" means:
 *34 - address\command byte (34h & F7h (address mask) = 30h (address of bill validator))
 ffff - two bytes enable bill types accepting all types (all bits are set to 1)
-0000 - two bytes enable bill types escrow all types (all bits are set to 0)
+0000 - two bytes disable bill types escrow all types (all bits are set to 0)
 32 (last byte) -  MDB checksum ((34h + ffh + ffh + 00h + 00h) & FFh = 32, only lower 8 bits are checksum)
 
 * - 9th bit set to 1
