@@ -1,2 +1,0 @@
-C:\Users\root\Source\Repos\Arduino-MDB-UART\MDBLib\MDBLib.csproj;x64
-C:\Users\root\Source\Repos\Arduino-MDB-UART\MDBLib_Example\MDBLib_Example.csproj;x64
