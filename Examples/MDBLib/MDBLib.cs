@@ -27,15 +27,28 @@ namespace MDBLib
         public delegate void MDBErrorDelegate(string ErrorMessage);
         public delegate void MDBDebugDelegate(string DebugMessage);
         public delegate void MDBDataProcessingErrorDelegate(string DataProcessingErrorMessage);
-        public delegate void MDBChangeDispensedDelegate(int DispensedSum);
-        public delegate void MDBCCTubesStatusDelegate(int RUR1, int RUR2, int RUR5, int RUR10);
+        public delegate void MDBChangeDispensedDelegate(List<CoinsRecord> DispensedCoinsData);
+        public delegate void MDBCCTubesStatusDelegate(List<CoinChangerTubeRecord> CoinChangerTubeStatusData);
         public delegate void MDBBAStackerStatusDelegate(bool StackerFull, int StackerBillsCount);
         public delegate void MDBInformationMessageReceivedDelegate(string MDBInformationMessage);
 
         /// <summary>
-        /// аксессор для экземпляра класса
+        /// структура записи о количестве монет
         /// </summary>
-        public static MDB MDBInstance = null;
+        public class CoinsRecord
+        {
+            public double CoinValue = 0.00;
+            public int CoinsDispensed = 0;
+        }
+        /// <summary>
+        /// структура записи о статусе трубки монетоприемника
+        /// </summary>
+        public class CoinChangerTubeRecord
+        {
+            public double CoinValue = 0.00;
+            public int CoinsCount = 0;
+            public bool IsFull = false;
+        }
         /// <summary>
         /// Последовательный порт адаптера
         /// </summary>
@@ -568,24 +581,30 @@ namespace MDBLib
                     if ((CheckDispenseResult) && (ResponseData.Length == 18))//информация о выданной сдаче
                     {
                         CheckDispenseResult = false;
-                        int i1 = ResponseData[2];
-                        int i2 = ResponseData[3];
-                        int i5 = ResponseData[4];
-                        int i10 = ResponseData[6];
-                        int TotalCoins = i1 + i2 + i5 + i10;
-                        int TotalDispensed = i1 + i2 * 2 + i5 * 5 + i10 * 10;
-                        if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: dispensed sum value={0}", TotalDispensed)); else MDBChangeDispensed?.Invoke(TotalDispensed);
+                        List<CoinsRecord> tmpcr = new List<CoinsRecord> { };
+                        for (int i = 1; i < ResponseData.Length - 1; i++)
+                        {
+                            if (ResponseData[i] != 0)
+                            {
+                                tmpcr.Add(new CoinsRecord { CoinsDispensed = ResponseData[i], CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[i] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2) });
+                            }
+                        }
+                        if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: dispensed sum value={0}", tmpcr.Sum(x => x.CoinValue))); else MDBChangeDispensed?.Invoke(tmpcr);
                         return;
                     }
                     if ((CheckCCTubeStatus) && (ResponseData.Length == 20))//информация о заполнении трубок
                     {
-                        CheckCCTubeStatus = false;
-                        int i1 = ResponseData[5];
-                        int i2 = ResponseData[6];
-                        int i5 = ResponseData[7];
-                        int i10 = ResponseData[9];
-                        int TotalCoinsInTubesValue = i1 + i2 * 2 + i5 * 5 + i10 * 10;
-                        if (DebugEnabled) MDBDebug?.Invoke("DEBUG: CC tubes status received"); else MDBCCTubesStatus?.Invoke(i1, i2, i5, i10);
+                        CheckCCTubeStatus = false;;
+                        List<CoinChangerTubeRecord> tmptr = new List<CoinChangerTubeRecord> { };
+                        var tmpfullflags = new System.Collections.BitArray(ResponseData[1] << 8 | ResponseData[2]);
+                        for (int i = 3; i < ResponseData.Length - 1; i++)
+                        {
+                            if (ResponseData[i] != 0)
+                            {
+                                tmptr.Add(new CoinChangerTubeRecord { CoinsCount = ResponseData[i], IsFull = tmpfullflags[i - 3], CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[i] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2) });
+                            }
+                        }
+                        if (DebugEnabled) MDBDebug?.Invoke("DEBUG: CC tubes status received"); else MDBCCTubesStatus?.Invoke(tmptr);
                         return;
                     }
                     if ((ResponseData[1] & 0x80) == 1)//информация о выданных вручную монетах
