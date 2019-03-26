@@ -290,7 +290,7 @@ namespace MDBLib
             {
                 try
                 {
-                    if (DebugEnabled) MDBDebug?.Invoke("Поиск последовательного порта шины MDB..."); else MDBInformationMessageReceived?.Invoke("Порт MDB открыт, ожидание данных...");
+                    if (DebugEnabled) MDBDebug?.Invoke("Порт MDB открыт, ожидание данных..."); else MDBInformationMessageReceived?.Invoke("Порт MDB открыт, ожидание данных...");
                     MDBSerialDataReaderObject = new DataReader(MDBSerialPort.InputStream)
                     {
                         InputStreamOptions = InputStreamOptions.Partial
@@ -510,7 +510,7 @@ namespace MDBLib
                                         if (DebugEnabled) MDBDebug?.Invoke("Замятие в купюроприемнике"); else MDBError?.Invoke("Замятие в купюроприемнике");
                                         return;
                                     case 6:
-                                        if (DebugEnabled) MDBDebug?.Invoke("Changer Reseted"); else MDBCCReseted?.Invoke();
+                                        if (DebugEnabled) MDBDebug?.Invoke("Changer Reseted"); else MDBBAReseted?.Invoke();
                                         return;
                                     case 7:
                                         tmpmdbmsg = "BA Bill Removed";
