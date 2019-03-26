@@ -586,7 +586,7 @@ namespace MDBLib
                         {
                             if (ResponseData[i] != 0)
                             {
-                                tmpcr.Add(new CoinsRecord { CoinsDispensed = ResponseData[i], CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[i] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2) });
+                                tmpcr.Add(new CoinsRecord { CoinsDispensed = ResponseData[i], CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[i - 1] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2) });
                             }
                         }
                         if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: dispensed sum value={0}", tmpcr.Sum(x => x.CoinValue))); else MDBChangeDispensed?.Invoke(tmpcr);
@@ -599,10 +599,7 @@ namespace MDBLib
                         var tmpfullflags = new System.Collections.BitArray(ResponseData[1] << 8 | ResponseData[2]);
                         for (int i = 3; i < ResponseData.Length - 1; i++)
                         {
-                            if (ResponseData[i] != 0)
-                            {
-                                tmptr.Add(new CoinChangerTubeRecord { CoinsCount = ResponseData[i], IsFull = tmpfullflags[i - 3], CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[i] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2) });
-                            }
+                            tmptr.Add(new CoinChangerTubeRecord { CoinsCount = ResponseData[i], IsFull = tmpfullflags[i - 3], CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[i - 3] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2) });
                         }
                         if (DebugEnabled) MDBDebug?.Invoke("DEBUG: CC tubes status received"); else MDBCCTubesStatus?.Invoke(tmptr);
                         return;
