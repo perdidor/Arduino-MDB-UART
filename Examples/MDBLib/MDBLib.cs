@@ -510,7 +510,7 @@ namespace MDBLib
                                         if (DebugEnabled) MDBDebug?.Invoke("Замятие в купюроприемнике"); else MDBError?.Invoke("Замятие в купюроприемнике");
                                         return;
                                     case 6:
-                                        if (DebugEnabled) MDBDebug?.Invoke("Changer Reseted"); else MDBBAReseted?.Invoke();
+                                        if (DebugEnabled) MDBDebug?.Invoke("Bill validator Reseted"); else MDBBAReseted?.Invoke();
                                         return;
                                     case 7:
                                         tmpmdbmsg = "BA Bill Removed";
