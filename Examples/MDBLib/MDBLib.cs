@@ -18,9 +18,19 @@ namespace MDBLib
     {
         public delegate void MDBAdapterStartedDelegate();
         public delegate void MDBCoinsDispensedManuallyDelegate(double CoinValue, int CoinsDispensed, int CoinsLeft);
-        public delegate void MDBChangerPayOutBusydDelegate();
+        public delegate void MDBChangerPayoutStartedDelegate();
         public delegate void MDBBAResetedDelegate();
+        public delegate void MDBBADisabledDelegate();
+        public delegate void MDBCCUnpluggedDelegate();
+        public delegate void MDBCCPluggedDelegate();
+        public delegate void MDBBAEnabledDelegate();
+        public delegate void MDBBABusyDelegate();
+        public delegate void MDBBAReadyDelegate();
+        public delegate void MDBCCABusyDelegate();
+        public delegate void MDBCCReadyDelegate();
+        public delegate void MDBBACashBoxRemovedDelegate();
         public delegate void MDBCCResetedDelegate();
+        public delegate void MDBCCPayoutCompleteDelegate();
         public delegate void MDBInsertedBillDelegate(double BillValue);
         public delegate void MDBInsertedCoinRoutedToCashBoxDelegate(double CoinValue);
         public delegate void MDBInsertedCoinRoutedToCCTubeDelegate(double CoinValue);
@@ -58,9 +68,21 @@ namespace MDBLib
         /// </summary>
         private static List<byte[]> CommandList = new List<byte[]> { };
         /// <summary>
-        /// флаг перехода купюроприемника в нерабочий
+        /// Статус готовности монетоприемника
         /// </summary>
-        private static bool BAAlreadyDisabled = false;
+        public static bool CCReadyStatus = true;
+        /// <summary>
+        /// Статус монетоприемника
+        /// </summary>
+        public static bool CCPluggedStatus = true;
+        /// <summary>
+        /// флаг готовности купюроприемника к приему команд
+        /// </summary>
+        public static bool BAReadyStatus = true;
+        /// <summary>
+        /// флаг готовности к приему наличных
+        /// </summary>
+        public static bool BAEnableStatus = true;
         /// <summary>
         /// Флаг ожидания сатуса купюроприемника
         /// </summary>
@@ -101,7 +123,63 @@ namespace MDBLib
         /// Таймаут ожидания выдачи сдачи (обновляется при каждом получении информации о выдаче)
         /// </summary>
         public static DateTime DispenseTimeout = new DateTime();
+        /// <summary>
+        /// Таймаут ожидания выхода купюроприемника из нерабочего режима
+        /// </summary>
+        public static DateTime BADisabledTimeout = new DateTime();
+        /// <summary>
+        /// Таймаут ожидания выхода купюроприемника из режима "занят"
+        /// </summary>
+        public static DateTime BABusyTimeout = new DateTime();
+        /// <summary>
+        /// Таймаут ожидания подключения монетоприемника
+        /// </summary>
+        public static DateTime CCUnpluggedTimeout = new DateTime();
+        /// <summary>
+        /// Таймаут ожидания выхода монетоприемника из режима "занят"
+        /// </summary>
+        public static DateTime CCBusyTimeout = new DateTime();
 
+        /// <summary>
+        /// Монетоприемник занят
+        /// </summary>
+        public static event MDBCCABusyDelegate MDBCCABusy;
+        /// <summary>
+        /// Монетоприемник готов
+        /// </summary>
+        public static event MDBCCReadyDelegate MDBCCReady;
+        /// <summary>
+        /// Монетоприемник закрыт
+        /// </summary>
+        public static event MDBCCPluggedDelegate MDBCCPlugged;
+        /// <summary>
+        /// Монетоприемник открыт
+        /// </summary>
+        public static event MDBCCUnpluggedDelegate MDBCCUnplugged;
+        /// <summary>
+        /// Купюроприемник "Занят"
+        /// </summary>
+        public static event MDBBABusyDelegate MDBBABusy;
+        /// <summary>
+        /// Купюроприемник вышел из режима "Занят"
+        /// </summary>
+        public static event MDBBAReadyDelegate MDBBAReady;
+        /// <summary>
+        /// Стекер снят
+        /// </summary>
+        public static event MDBBACashBoxRemovedDelegate MDBBACashBoxRemoved;
+        /// <summary>
+        /// Монетоприемник закончил выдачу сдачи
+        /// </summary>
+        public static event MDBCCPayoutCompleteDelegate MDBCCPayoutComplete;
+        /// <summary>
+        /// валидатор вышел из нерабочего режима
+        /// </summary>
+        public static event MDBBAEnabledDelegate MDBBAEnabled;
+        /// <summary>
+        /// валидатор не готов к приему наличных
+        /// </summary>
+        public static event MDBBADisabledDelegate MDBBADisabled;
         /// <summary>
         /// Адаптер MDB-RS232 стартанул
         /// </summary>
@@ -161,7 +239,7 @@ namespace MDBLib
         /// <summary>
         /// Монетоприемник занят вдачей сдачи
         /// </summary>
-        public static event MDBChangerPayOutBusydDelegate MDBCCPayOutBusy;
+        public static event MDBChangerPayoutStartedDelegate MDBChangerPayoutStarted;
         /// <summary>
         /// флаг доступа к исходящим командам
         /// </summary>
@@ -361,6 +439,53 @@ namespace MDBLib
             MDBSerialPort = null;
         }
 
+        /// <summary>
+        /// Запускается при первом сообщении "BA Unit Disabled".
+        /// </summary>
+        /// <returns></returns>
+        private static void BA_DisabledWatch()
+        {
+            BAEnableStatus = false;
+            if (DebugEnabled) MDBDebug?.Invoke("BA Unit Disabled"); else MDBBADisabled?.Invoke();
+            while (BADisabledTimeout > DateTime.Now)
+            {
+                Task.Delay(100).Wait();
+            }
+            BAEnableStatus = true;
+            if (DebugEnabled) MDBDebug?.Invoke("BA Unit Enabled"); else MDBBAEnabled?.Invoke();
+        }
+
+        /// <summary>
+        /// Запускается при первом сообщении "Валидатор занят обработкой данных".
+        /// </summary>
+        /// <returns></returns>
+        private static void BA_BusyWatch()
+        {
+            BAReadyStatus = false;
+            if (DebugEnabled) MDBDebug?.Invoke("BA Unit Busy"); else MDBBABusy?.Invoke();
+            while (BABusyTimeout > DateTime.Now)
+            {
+                Task.Delay(100).Wait();
+            }
+            BAReadyStatus = true;
+            if (DebugEnabled) MDBDebug?.Invoke("BA Unit Ready"); else MDBBAReady?.Invoke();
+        }
+
+        /// <summary>
+        /// Запускается при первом сообщении "Монетоприемник открыт".
+        /// </summary>
+        /// <returns></returns>
+        private static void CC_UnpluggedWatch()
+        {
+            CCPluggedStatus = false;
+            if (DebugEnabled) MDBDebug?.Invoke("Acceptor Unplugged"); else MDBCCUnplugged?.Invoke();
+            while (CCUnpluggedTimeout > DateTime.Now)
+            {
+                Task.Delay(100).Wait();
+            }
+            CCPluggedStatus = true;
+            if (DebugEnabled) MDBDebug?.Invoke("Acceptor Plugged"); else MDBCCPlugged?.Invoke();
+        }
 
         /// <summary>
         /// Запускается в начале выдачи сдачи монетами (при первом сообщении "Changer Payout Busy").
@@ -368,12 +493,31 @@ namespace MDBLib
         /// <returns></returns>
         private static void CoinChanger_DispenseWatch()
         {
+            DispenseInProgress = true;
+            if (DebugEnabled) MDBDebug?.Invoke("CC Changer Payout Started"); else MDBChangerPayoutStarted?.Invoke();
             while (DispenseTimeout > DateTime.Now)
             {
-                Task.Delay(1000).Wait();
+                Task.Delay(100).Wait();
             }
             DispenseInProgress = false;
             CheckDispenseResult = true;
+            if (DebugEnabled) MDBDebug?.Invoke("CC Changer Payout Complete"); else MDBCCPayoutComplete?.Invoke();
+        }
+
+        /// <summary>
+        /// Запускается при первом сообщении "Changer Busy".
+        /// </summary>
+        /// <returns></returns>
+        private static void CC_BusyWatch()
+        {
+            CCReadyStatus = false;
+            if (DebugEnabled) MDBDebug?.Invoke("Changer Busy"); else MDBCCABusy?.Invoke();
+            while (DispenseTimeout > DateTime.Now)
+            {
+                Task.Delay(100).Wait();
+            }
+            CCReadyStatus = true;
+            if (DebugEnabled) MDBDebug?.Invoke("Changer Ready"); else MDBCCReady?.Invoke();
         }
 
         /// <summary>
@@ -414,9 +558,8 @@ namespace MDBLib
         /// </summary>
         /// <param name="MDBStringData">String representation if incoming MDB serial data</param>
         /// <returns>none</returns>
-        public static void MDBIncomingDataProcess(string MDBStringData)
+        private static void MDBIncomingDataProcess(string MDBStringData)
         {
-            string tmpmdbmsg = "";
             if (MDBStringData.Length >= 120)
             {
                 if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG ERROR: {0}", "Слишком большой пакет (>40 байт)")); else MDBInformationMessageReceived?.Invoke("Слишком большой пакет (>40 байт)");
@@ -425,9 +568,13 @@ namespace MDBLib
             byte[] ResponseData = new byte[] { };
             try
             {
-                if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG READ: {0}", MDBStringData));
+                if (DebugEnabled)
+                {
+                    MDBDebug?.Invoke(string.Format("DEBUG READ: {0}", MDBStringData));
+                }
                 if (MDBStringData == "MDB-UART PLC ready") //MDB-UART adapter PLC started
                 {
+                    MDBAdapterStarted?.Invoke();
                     return;
                 }
                 MDBStringData = MDBStringData.Replace(" ", "");
@@ -453,250 +600,310 @@ namespace MDBLib
             MDBAbswerFromByteSemaphore.Release();
             if (ResponseData[0] == 0x30)//данные от купюроприемника
             {
-                try
+                ProcessBAResponse(ResponseData);
+            }
+            if (ResponseData[0] == 0x08)//информация от монетоприемника
+            {
+                ProcessCCResponse(ResponseData);
+            }
+        }
+
+        private static void ProcessCCResponse(byte[] ResponseData)
+        {
+            try
+            {
+                if ((GetCCSettings) && (ResponseData.Length >= 9) && (ResponseData.Length <= 25))//настройки
                 {
-                    if ((GetBASettings) && (ResponseData.Length == 29))//Ожидаем настройки, размер данных совпадает
+                    GetCCSettings = false;
+                    CoinChangerSetupData.ChangerFeatureLevel = ResponseData[1];
+                    CoinChangerSetupData.CountryOrCurrencyCode = BCDByteToInt(new byte[2] { ResponseData[2], ResponseData[3] });
+                    CoinChangerSetupData.CoinScalingFactor = ResponseData[4];
+                    CoinChangerSetupData.DecimalPlaces = ResponseData[5];
+                    var tmpcr = new System.Collections.BitArray(ResponseData[6] << 8 | ResponseData[7]);
+                    for (int i = 0; i < tmpcr.Length; i++)
                     {
-                        GetBASettings = false;
-                        BillValidatorSetupData.BillValidatorFeatureLevel = ResponseData[1];
-                        BillValidatorSetupData.CountryOrCurrencyCode = BCDByteToInt(new byte[2] { ResponseData[2], ResponseData[3] });
-                        BillValidatorSetupData.BillScalingFactor = ResponseData[4] << 8 | ResponseData[5];
-                        BillValidatorSetupData.DecimalPlaces = ResponseData[6];
-                        BillValidatorSetupData.StackerCapacity = ResponseData[7] << 8 | ResponseData[8];
-                        var tmpcr = new System.Collections.BitArray(ResponseData[9] << 8 | ResponseData[10]);
-                        for (int i = 0; i < tmpcr.Length; i++)
-                        {
-                            BillValidatorSetupData.BillSecurityLevel[i] = tmpcr[i];
-                        }
-                        BillValidatorSetupData.Escrow = ((ResponseData[11] & 0xff) == 1);
-                        for (int i = 12; i < ResponseData.Length - 1; i++)
-                        {
-                            BillValidatorSetupData.BillTypeCredit[i - 12] = ResponseData[i];
-                        }
-                        return;
+                        CoinChangerSetupData.CoinsRouteable[i] = tmpcr[i];
                     }
-                    if (CheckBAStatus && (ResponseData.Length == 4))//Ожидаем статус, размер данных совпадает
+                    for (int i = 8; i < ResponseData.Length - 1; i++)
                     {
-                        CheckBAStatus = false;
-                        bool isstackerfull = ((ResponseData[1] & 0x80) == 1);
-                        int stackerbillscount = (ResponseData[7] << 8 | ResponseData[8]) & 0x0FFF;
-                        if (DebugEnabled) MDBDebug?.Invoke("DEBUG: BA stacker status received"); else MDBBAStackerStatus?.Invoke(isstackerfull, stackerbillscount);
-                        return;
+                        CoinChangerSetupData.CoinTypeCredit[i - 8] = ResponseData[i];
                     }
-                    switch (ResponseData[1] & 0x80)
+                    return;
+                }
+                if ((CheckDispenseResult) && (ResponseData.Length == 18))//информация о выданной сдаче
+                {
+                    CheckDispenseResult = false;
+                    List<CoinsRecord> tmpcr = new List<CoinsRecord> { };
+                    for (int i = 1; i < ResponseData.Length - 1; i++)
+                    {
+                        if (ResponseData[i] != 0)
+                        {
+                            tmpcr.Add(new CoinsRecord { CoinsDispensed = ResponseData[i], CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[i - 1] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2) });
+                        }
+                    }
+                    if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: dispensed sum value={0}", tmpcr.Sum(x => x.CoinValue))); else MDBChangeDispensed?.Invoke(tmpcr);
+                    return;
+                }
+                if ((CheckCCTubeStatus) && (ResponseData.Length == 20))//информация о заполнении трубок
+                {
+                    CheckCCTubeStatus = false; ;
+                    List<CoinChangerTubeRecord> tmptr = new List<CoinChangerTubeRecord> { };
+                    var tmpfullflags = new System.Collections.BitArray(ResponseData[1] << 8 | ResponseData[2]);
+                    for (int i = 3; i < ResponseData.Length - 1; i++)
+                    {
+                        tmptr.Add(new CoinChangerTubeRecord { CoinsCount = ResponseData[i], IsFull = tmpfullflags[i - 3], CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[i - 3] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2) });
+                    }
+                    if (DebugEnabled) MDBDebug?.Invoke("DEBUG: CC tubes status received"); else MDBCCTubesStatus?.Invoke(tmptr);
+                    return;
+                }
+                //The Changer may send several of one type activity *, up to 16 bytes
+                //total.This will permit zeroing counters such as slug, inventory, and
+                //status.
+                //1 Sent once each occurrence
+                //2 Sent once each POLL
+                //*Type activity is defined as Coins Dispensed Manually, Coins Deposited,
+                //Status, and Slug. All may be combined in a response to a POLL command
+                //providing the total number of bytes does not exceed 16.Note that Coins
+                //Dispensed Manually and Coins Deposited are dual byte codes.
+                for (int i = 1; i < ResponseData.Length - 1; i++)
+                {
+                    if ((ResponseData[i] & 0x80) >> 7 == 1)//информация о выданных вручную монетах
+                    {
+                        //Coins Dispensed Manually
+                        int CoinsQuantity = ((ResponseData[i] & 0x70) >> 4);//bits 5-7 of byte 1
+                        int CoinType = (ResponseData[i] & 0x0F);//bits 1-4 of byte 1
+                        int CoinsLeft = ResponseData[i + 1];//byte 2
+                        i++;
+                        double CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[CoinType] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2);
+                        if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: MDBCoinsDispensedManually type={3}, value={0}, qty={1}, coinsleft={2}", CoinValue, CoinsQuantity, CoinsLeft, CoinType)); else MDBCoinsDispensedManually?.Invoke(CoinValue, CoinsQuantity, CoinsLeft);
+                    } else
+                        if ((ResponseData[i] & 0x40) >> 6 == 1)//закинута монета
+                        {
+                            //Coins deposited
+                            int CoinRouting = ((ResponseData[i] & 0x30) >> 4);//bits 5-6 of byte 1
+                            int CoinType = (ResponseData[i] & 0x0F);//bits 1-4 of byte 1
+                            int CoinsLeft = ResponseData[i + 1];//byte 2
+                            i++;
+                            double CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[CoinType] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2);
+                            switch (CoinRouting)
+                            {
+                                case 0://"Кэшбокс";
+                                    if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: MDBInsertedCoinRoutedToCashBox type={1}, value={0}, total={2}", CoinValue, CoinType, CoinsLeft));
+                                    else
+                                        MDBInsertedCoinRoutedToCashBox?.Invoke(CoinValue);
+                                    break;
+                                case 1://"Трубка монетоприемника";
+                                    if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: MDBInsertedCoinRoutedToCCTube type={1}, value={0}, total={2}", CoinValue, CoinType, CoinsLeft));
+                                    else
+                                        MDBInsertedCoinRoutedToCCTube?.Invoke(CoinValue);
+                                    break;
+                                case 3://Возврат
+                                    if (DebugEnabled) MDBDebug?.Invoke("Монета нераспознана, возвращена"); else MDBInformationMessageReceived?.Invoke("Монета нераспознана, возвращена");
+                                    break;
+                                case 2://неизвестно
+                                    if (DebugEnabled) MDBDebug?.Invoke("Какая-то неведомая хуйня с монетой"); else MDBInformationMessageReceived?.Invoke("Какая-то неведомая хуйня с монетой");
+                                    break;
+                            }
+                        } else
+                        switch (ResponseData[i])//ошибка
+                        {
+                            case 1:
+                                if (DebugEnabled) MDBDebug?.Invoke("CC Escrow Request"); else MDBInformationMessageReceived?.Invoke("CC Escrow Request");
+                                break;
+                            case 2:
+                                DispenseTimeout = DateTime.Now.AddSeconds(3);
+                                if (!DispenseInProgress)
+                                {
+                                    Task.Run(() =>
+                                    {
+                                        CoinChanger_DispenseWatch();
+                                    });
+                                }
+                                break;
+                            case 3:
+                                if (DebugEnabled) MDBDebug?.Invoke("CC No Credit"); else MDBInformationMessageReceived?.Invoke("CC No Credit");
+                                break;
+                            case 4:
+                                if (DebugEnabled) MDBDebug?.Invoke("Ошибка датчика в трубе монетоприемника"); else MDBError?.Invoke("Ошибка датчика в трубе монетоприемника");
+                                break;
+                            case 5:
+                                if (DebugEnabled) MDBDebug?.Invoke("CC Double Arrival"); else MDBInformationMessageReceived?.Invoke("CC Double Arrival");
+                                break;
+                            case 6:
+                                    CCUnpluggedTimeout = DateTime.Now.AddSeconds(3);
+                                    if (CCPluggedStatus)
+                                    {
+                                        Task.Run(() =>
+                                        {
+                                            CC_UnpluggedWatch();
+                                        });
+                                    }
+                                    break;
+                            case 7:
+                                if (DebugEnabled) MDBDebug?.Invoke("Застревание монеты в трубе монетоприемника при выдаче сдачи"); else MDBError?.Invoke("Застревание монеты в трубе монетоприемника при выдаче сдачи");
+                                break;
+                            case 8:
+                                if (DebugEnabled) MDBDebug?.Invoke("Ошибка микропрограммы монетоприемника"); else MDBError?.Invoke("Ошибка микропрограммы монетоприемника");
+                                break;
+                            case 9:
+                                if (DebugEnabled) MDBDebug?.Invoke("Ошибка направляющих механизмов монетоприемника"); else MDBError?.Invoke("Ошибка направляющих механизмов монетоприемника");
+                                break;
+                            case 10:
+                                CCBusyTimeout = DateTime.Now.AddSeconds(3);
+                                if (CCReadyStatus)
+                                {
+                                    Task.Run(() =>
+                                    {
+                                        CC_UnpluggedWatch();
+                                    });
+                                }
+                                break;
+                            case 11:
+                                MDBCCReseted?.Invoke();
+                                break;
+                            case 12:
+                                if (DebugEnabled) MDBDebug?.Invoke("Застревание монеты"); else MDBError?.Invoke("Застревание монеты");
+                                break;
+                            default:
+                                break;
+                        }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG ERROR: {0}, extended: {1}", ex.Message, ex.InnerException?.Message)); else MDBDataProcessingError?.Invoke(ex.Message);
+            }
+            finally
+            {
+                
+            }
+        }
+
+        /// <summary>
+        /// Обрабатываем ответ от купюроприемника
+        /// </summary>
+        /// <param name="ResponseData"></param>
+        private static void ProcessBAResponse(byte[] ResponseData)
+        {
+            try
+            {
+                if ((GetBASettings) && (ResponseData.Length == 29))//Ожидаем настройки, размер данных совпадает
+                {
+                    GetBASettings = false;
+                    BillValidatorSetupData.BillValidatorFeatureLevel = ResponseData[1];
+                    BillValidatorSetupData.CountryOrCurrencyCode = BCDByteToInt(new byte[2] { ResponseData[2], ResponseData[3] });
+                    BillValidatorSetupData.BillScalingFactor = ResponseData[4] << 8 | ResponseData[5];
+                    BillValidatorSetupData.DecimalPlaces = ResponseData[6];
+                    BillValidatorSetupData.StackerCapacity = ResponseData[7] << 8 | ResponseData[8];
+                    var tmpcr = new System.Collections.BitArray(ResponseData[9] << 8 | ResponseData[10]);
+                    for (int i = 0; i < tmpcr.Length; i++)
+                    {
+                        BillValidatorSetupData.BillSecurityLevel[i] = tmpcr[i];
+                    }
+                    BillValidatorSetupData.Escrow = ((ResponseData[11] & 0xff) == 1);
+                    for (int i = 12; i < ResponseData.Length - 1; i++)
+                    {
+                        BillValidatorSetupData.BillTypeCredit[i - 12] = ResponseData[i];
+                    }
+                    return;
+                }
+                if (CheckBAStatus && (ResponseData.Length == 4))//Ожидаем статус стекера, размер данных совпадает
+                {
+                    CheckBAStatus = false;
+                    bool isstackerfull = ((ResponseData[1] & 0x80) == 1);
+                    int stackerbillscount = (ResponseData[7] << 8 | ResponseData[8]) & 0x0FFF;
+                    if (DebugEnabled) MDBDebug?.Invoke("DEBUG: BA stacker status received"); else MDBBAStackerStatus?.Invoke(isstackerfull, stackerbillscount);
+                    return;
+                }
+                //The validator may send several of one type activity* up to 16 bytes total.
+                //*Type activity is defined as Bills Accepted and Status.All may be combined in a
+                //response to a POLL command providing the total number of bytes does not
+                //exceed 16.
+                for (int i = 1; i < ResponseData.Length - 1; i++)
+                {
+                    switch ((ResponseData[i] & 0x80) >> 7)
                     {
                         case 1://принята купюра
-                            int route = ResponseData[1] & 0x70;
-                            double value = Math.Round(BillValidatorSetupData.BillScalingFactor * BillValidatorSetupData.BillTypeCredit[ResponseData[1] & 0x0F] * (1 / Math.Pow(10, BillValidatorSetupData.DecimalPlaces)), 2);
+                            int route = (ResponseData[i] & 0x70 >> 4);//bits 5-7 of byte 1
+                            double value = Math.Round(BillValidatorSetupData.BillScalingFactor * BillValidatorSetupData.BillTypeCredit[ResponseData[i] & 0x0F] * (1 / Math.Pow(10, BillValidatorSetupData.DecimalPlaces)), 2);
                             if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: Bill Inserted value={0}", value)); else MDBInsertedBill?.Invoke(value);
-                            return;
+                            break;
                         case 0://сообщение статуса
-                            if ((ResponseData[1] & 0x40) == 0)// ошибка
-                                switch (ResponseData[1] & 0x7F)
+                            if ((ResponseData[i] & 0x40) >> 5 == 2)// сообщение о попытках вставить купюру, пока купюроприемник был в нерабочем состоянии
+                            {
+                                if (DebugEnabled) MDBDebug?.Invoke(string.Format("Количество попыток вставить купюру в неактивном состоянии: {0}", ResponseData[i] & 0x1F));
+                                else
+                                    MDBError?.Invoke(string.Format("Количество попыток вставить купюру в неактивном состоянии: {0}", ResponseData[i] & 0x1F));
+                            } else// Ошибка
+                            {
+                                switch (ResponseData[i] & 0x0F)
                                 {
                                     case 1:
                                         if (DebugEnabled) MDBDebug?.Invoke("Ошибка двигателя купюроприемника"); else MDBError?.Invoke("Ошибка двигателя купюроприемника");
-                                        return;
+                                        break;
                                     case 2:
                                         if (DebugEnabled) MDBDebug?.Invoke("Ошибка датчика купюроприемника"); else MDBError?.Invoke("Ошибка датчика купюроприемника");
-                                        return;
+                                        break;
                                     case 3:
-                                        if (DebugEnabled) MDBDebug?.Invoke("Валидатор занят обработкой данных"); else MDBError?.Invoke("Валидатор занят обработкой данных");
-                                        return;
+                                        BABusyTimeout = DateTime.Now.AddSeconds(3);
+                                        if (BAReadyStatus)
+                                        {
+                                            Task.Run(() =>
+                                            {
+                                                BA_BusyWatch();
+                                            });
+                                        }
+                                        break;
                                     case 4:
                                         if (DebugEnabled) MDBDebug?.Invoke("Ошибка микропрограммы купюроприемника"); else MDBError?.Invoke("Ошибка микропрограммы купюроприемника");
-                                        return;
+                                        break;
                                     case 5:
                                         if (DebugEnabled) MDBDebug?.Invoke("Замятие в купюроприемнике"); else MDBError?.Invoke("Замятие в купюроприемнике");
-                                        return;
+                                        break;
                                     case 6:
                                         if (DebugEnabled) MDBDebug?.Invoke("Bill validator Reseted"); else MDBBAReseted?.Invoke();
-                                        return;
+                                        break;
                                     case 7:
-                                        tmpmdbmsg = "BA Bill Removed";
+                                        if (DebugEnabled) MDBDebug?.Invoke("BA Bill Removed"); else MDBInformationMessageReceived?.Invoke("BA Bill Removed");
                                         break;
                                     case 8:
-                                        tmpmdbmsg = "BA Cash Box Out of Position";
+                                        if (DebugEnabled) MDBDebug?.Invoke("BA Cash Box Out of Position"); else MDBBACashBoxRemoved?.Invoke();
                                         break;
                                     case 9:
-                                        tmpmdbmsg = "BA Unit Disabled";
+                                        BADisabledTimeout = DateTime.Now.AddSeconds(3);
+                                        if (BAEnableStatus)
+                                        {
+                                            Task.Run(() =>
+                                            {
+                                                BA_DisabledWatch();
+                                            });
+                                        }
                                         break;
                                     case 10:
-                                        tmpmdbmsg = "BA Invalid Escrow Request";
+                                        if (DebugEnabled) MDBDebug?.Invoke("BA Invalid Escrow Request"); else MDBInformationMessageReceived?.Invoke("BA Invalid Escrow Request");
                                         break;
                                     case 11:
-                                        tmpmdbmsg = "BA Bill Rejected";
+                                        if (DebugEnabled) MDBDebug?.Invoke("BA Bill Rejected"); else MDBInformationMessageReceived?.Invoke("BA Bill Rejected");
                                         break;
-                                    case 20:
-                                        tmpmdbmsg = "BA Bill Not Recognized";
+                                    case 12:
+                                        if (DebugEnabled) MDBDebug?.Invoke("Possible Credited Bill Removal"); else MDBInformationMessageReceived?.Invoke("Possible Credited Bill Removal");
                                         break;
                                     default:
                                         break;
                                 }
-                            else//сообщение о попытках вставить купюру, пока купюроприемник был в нерабочем состоянии
-                            {
-                                if (DebugEnabled) MDBDebug?.Invoke(string.Format("Количество попыток вставить купюру в неактивном состоянии: {0}", ResponseData[1] & 0x1F)); else
-                                    MDBError?.Invoke(string.Format("Количество попыток вставить купюру в неактивном состоянии: {0}", ResponseData[1] & 0x1F));
-                                return;
                             }
                             break;
                     }
+                    Task.Delay(100).Wait();
                 }
-                catch (Exception ex)
-                {
-                    if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG ERROR: {0}, extended: {1}", ex.Message, ex.InnerException?.Message)); else MDBDataProcessingError?.Invoke(ex.Message);
-                }
-                finally
-                {
-                    if (((tmpmdbmsg == "BA Unit Disabled") && !(BAAlreadyDisabled)) || (tmpmdbmsg != "BA Unit Disabled"))
-                    {
-                        if (DebugEnabled) MDBDebug?.Invoke(string.Format(tmpmdbmsg)); else MDBInformationMessageReceived?.Invoke(tmpmdbmsg);
-                        if (tmpmdbmsg == "BA Unit Disabled") BAAlreadyDisabled = true; else BAAlreadyDisabled = false;
-                    }
-                }
-                return;
             }
-            if (ResponseData[0] == 0x08)//информация от монетоприемника
+            catch (Exception ex)
             {
-                try
-                {
-                    if ((GetCCSettings) && (ResponseData.Length >= 9) && (ResponseData.Length <= 25))//настройки
-                    {
-                        GetCCSettings = false;
-                        CoinChangerSetupData.ChangerFeatureLevel = ResponseData[1];
-                        CoinChangerSetupData.CountryOrCurrencyCode = BCDByteToInt(new byte[2] { ResponseData[2], ResponseData[3] });
-                        CoinChangerSetupData.CoinScalingFactor = ResponseData[4];
-                        CoinChangerSetupData.DecimalPlaces = ResponseData[5];
-                        var tmpcr = new System.Collections.BitArray(ResponseData[6] << 8 | ResponseData[7]);
-                        for (int i = 0; i < tmpcr.Length; i++)
-                        {
-                            CoinChangerSetupData.CoinsRouteable[i] = tmpcr[i];
-                        }
-                        for (int i = 8; i < ResponseData.Length - 1; i++)
-                        {
-                            CoinChangerSetupData.CoinTypeCredit[i - 8] = ResponseData[i];
-                        }
-                        return;
-                    }
-                    if ((CheckDispenseResult) && (ResponseData.Length == 18))//информация о выданной сдаче
-                    {
-                        CheckDispenseResult = false;
-                        List<CoinsRecord> tmpcr = new List<CoinsRecord> { };
-                        for (int i = 1; i < ResponseData.Length - 1; i++)
-                        {
-                            if (ResponseData[i] != 0)
-                            {
-                                tmpcr.Add(new CoinsRecord { CoinsDispensed = ResponseData[i], CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[i - 1] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2) });
-                            }
-                        }
-                        if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: dispensed sum value={0}", tmpcr.Sum(x => x.CoinValue))); else MDBChangeDispensed?.Invoke(tmpcr);
-                        return;
-                    }
-                    if ((CheckCCTubeStatus) && (ResponseData.Length == 20))//информация о заполнении трубок
-                    {
-                        CheckCCTubeStatus = false;;
-                        List<CoinChangerTubeRecord> tmptr = new List<CoinChangerTubeRecord> { };
-                        var tmpfullflags = new System.Collections.BitArray(ResponseData[1] << 8 | ResponseData[2]);
-                        for (int i = 3; i < ResponseData.Length - 1; i++)
-                        {
-                            tmptr.Add(new CoinChangerTubeRecord { CoinsCount = ResponseData[i], IsFull = tmpfullflags[i - 3], CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[i - 3] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2) });
-                        }
-                        if (DebugEnabled) MDBDebug?.Invoke("DEBUG: CC tubes status received"); else MDBCCTubesStatus?.Invoke(tmptr);
-                        return;
-                    }
-                    if ((ResponseData[1] & 0x80) == 1)//информация о выданных вручную монетах
-                    {
-                        //Coins Dispensed Manually
-                        int CoinsQuantity = (ResponseData[1] & 0x70);//bits 5-7 of byte 1
-                        int CoinType = (ResponseData[1] & 0x0F);//bits 1-4 of byte 1
-                        int CoinsLeft = ResponseData[2];//byte 2
-                        double CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[CoinType] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2);
-                        if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: MDBCoinsDispensedManually value={0}, qty={1}, coinsleft={2}", CoinValue, CoinsQuantity, CoinsLeft)); else MDBCoinsDispensedManually?.Invoke(CoinValue, CoinsQuantity, CoinsLeft);
-                        return;
-                    }
-                    if ((ResponseData[1] & 0x40) == 1)//зааинута монета
-                    {
-                        //Coins deposited
-                        int CoinRouting = (ResponseData[1] & 0x30);//bits 5-6 of byte 1
-                        int CoinType = (ResponseData[1] & 0x0F);//bits 1-4 of byte 1
-                        int CoinsLeft = ResponseData[2];//byte 2
-                        double CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[CoinType] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2);
-                        switch (CoinRouting)
-                        {
-                            case 0://"Кэшбокс";
-                                if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: MDBInsertedCoinRoutedToCashBox value={0}", CoinValue)); else
-                                    MDBInsertedCoinRoutedToCashBox?.Invoke(CoinValue);
-                                return;
-                            case 1://"Трубка монетоприемника";
-                                if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: MDBInsertedCoinRoutedToCCTube value={0}", CoinValue)); else
-                                    MDBInsertedCoinRoutedToCCTube?.Invoke(CoinValue);
-                                return;
-                            case 3://Возврат
-                                if (DebugEnabled) MDBDebug?.Invoke("Монета нераспознана, возвращена"); else MDBInformationMessageReceived?.Invoke("Монета нераспознана, возвращена");
-                                return;
-                            default://неизвестно
-                                if (DebugEnabled) MDBDebug?.Invoke("Какая-то неведомая хуйня с монетой"); else MDBInformationMessageReceived?.Invoke("Какая-то неведомая хуйня с монетой");
-                                return;
-                        }
-                    }
-                    switch (ResponseData[1])//ошибка
-                    {
-                        case 1:
-                            tmpmdbmsg = "CC Escrow Request";
-                            break;
-                        case 2:
-                            tmpmdbmsg = "CC Changer Payout Busy";
-                            DispenseTimeout = DateTime.Now.AddSeconds(5);
-                            if (DebugEnabled) MDBDebug?.Invoke("CC Changer Payout Busy"); else MDBCCPayOutBusy?.Invoke();
-                            if (!DispenseInProgress)
-                            {
-                                CoinChanger_DispenseWatch();
-                            }
-                            return;
-                        case 3:
-                            tmpmdbmsg = "CC No Credit";
-                            break;
-                        case 4:
-                            if (DebugEnabled) MDBDebug?.Invoke("Ошибка датчика в трубе монетоприемника"); else MDBError?.Invoke("Ошибка датчика в трубе монетоприемника");
-                            return;
-                        case 5:
-                            tmpmdbmsg = "CC Double Arrival";
-                            break;
-                        case 6:
-                            if (DebugEnabled) MDBDebug?.Invoke("Монетоприемник открыт"); else MDBError?.Invoke("Монетоприемник открыт");
-                            return;
-                        case 7:
-                            if (DebugEnabled) MDBDebug?.Invoke("Застревание монеты в трубе монетоприемника при выдаче сдачи"); else MDBError?.Invoke("Застревание монеты в трубе монетоприемника при выдаче сдачи");
-                            return;
-                        case 8:
-                            if (DebugEnabled) MDBDebug?.Invoke("Ошибка микропрограммы монетоприемника"); else MDBError?.Invoke("Ошибка микропрограммы монетоприемника");
-                            return;
-                        case 9:
-                            if (DebugEnabled) MDBDebug?.Invoke("Ошибка направляющих механизмов монетоприемника"); else MDBError?.Invoke("Ошибка направляющих механизмов монетоприемника");
-                            return;
-                        case 10:
-                            tmpmdbmsg = "CC Changer Busy";
-                            break;
-                        case 11:
-                            MDBCCReseted?.Invoke();
-                            return;
-                        case 12:
-                            if (DebugEnabled) MDBDebug?.Invoke("Застревание монеты"); else MDBError?.Invoke("Застревание монеты");
-                            return;
-                        default:
-                            break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG ERROR: {0}, extended: {1}", ex.Message, ex.InnerException?.Message)); else MDBDataProcessingError?.Invoke(ex.Message);
-                }
-                finally
-                {
-                    if (DebugEnabled) MDBDebug?.Invoke(tmpmdbmsg); else MDBInformationMessageReceived?.Invoke(tmpmdbmsg);
-                    BAAlreadyDisabled = false;
-                }
-                return;
+                if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG ERROR: {0}, extended: {1}", ex.Message, ex.InnerException?.Message)); else MDBDataProcessingError?.Invoke(ex.Message);
+            }
+            finally
+            {
+
             }
         }
 
