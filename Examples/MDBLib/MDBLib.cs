@@ -248,7 +248,7 @@ namespace MDBLib
         /// </summary>
         public static class CoinChangerSetupData
         {
-            public static int ChangerFeatureLevel = 0;
+            public static int ChangerFeatureLevel = 2;
             public static int CountryOrCurrencyCode = 0;
             public static int CoinScalingFactor = 1;
             public static int DecimalPlaces = 0;
@@ -292,7 +292,7 @@ namespace MDBLib
         /// </summary>
         public static class BillValidatorSetupData
         {
-            public static int BillValidatorFeatureLevel = 0;
+            public static int BillValidatorFeatureLevel = 1;
             public static int CountryOrCurrencyCode = 0;
             public static int BillScalingFactor = 1;
             public static int DecimalPlaces = 0;
@@ -862,7 +862,7 @@ namespace MDBLib
                     if (DebugEnabled) MDBDebug?.Invoke("DEBUG: BillValidatorSetupData received"); else MDBInformationMessageReceived?.Invoke("BillValidatorSetupData received");
                     Task.Run(() =>
                     {
-                        GeBAIdentification();
+                        GetBAIdentification();
                     });
                     return;
                 }
@@ -1228,7 +1228,7 @@ namespace MDBLib
             CheckBAStatus = true;
             AddCommand(MDBCommands.GetBAStatus); //Request Stacker Status
             int RetryCount = 0;
-            while (CheckDispenseResult && RetryCount < 21)//таймаут ожидания ответа
+            while (CheckBAStatus && RetryCount < 21)//таймаут ожидания ответа
             {
                 Task.Delay(100).Wait();//пауза на 0.1сек
                 RetryCount++;
@@ -1244,12 +1244,31 @@ namespace MDBLib
             CheckCCTubeStatus = true;
             AddCommand(MDBCommands.GetCCStatus); //Request CC Tube Status
             int RetryCount = 0;
-            while (CheckDispenseResult && RetryCount < 21)//таймаут ожидания ответа
+            while (CheckCCTubeStatus && RetryCount < 21)//таймаут ожидания ответа
             {
                 Task.Delay(100).Wait();//пауза на 0.1сек
                 RetryCount++;
             }
             CheckCCTubeStatus = false;
+        }
+
+        /// <summary>
+        /// Запрашиваем расширенную информацию
+        /// </summary>
+        public static void GetCashDevicesIdentification()
+        {
+            GetCoinChangerID = true;
+            GetBAID = true;
+            byte[][] tmpidcmds = new byte[2][]{ MDBCommands.RequestChangerIdentification, (BillValidatorSetupData.BillValidatorFeatureLevel == 2) ? MDBCommands.RequestBAIdentification_Level2 : MDBCommands.RequestBAIdentification_Level1 };
+            AddCommand(tmpidcmds);
+            int RetryCount = 0;
+            while (GetBAID && GetCoinChangerID && RetryCount < 21)//таймаут ожидания ответа
+            {
+                Task.Delay(100).Wait();//пауза на 0.1сек
+                RetryCount++;
+            }
+            GetCoinChangerID = false;
+            GetBAID = false;
         }
 
         /// <summary>
@@ -1260,7 +1279,7 @@ namespace MDBLib
             GetCoinChangerID = true;
             AddCommand(MDBCommands.RequestChangerIdentification); //Request CC Expanded ID
             int RetryCount = 0;
-            while (CheckDispenseResult && RetryCount < 21)//таймаут ожидания ответа
+            while (GetCoinChangerID && RetryCount < 21)//таймаут ожидания ответа
             {
                 Task.Delay(100).Wait();//пауза на 0.1сек
                 RetryCount++;
@@ -1271,13 +1290,13 @@ namespace MDBLib
         /// <summary>
         /// Запрашиваем расширенную информацию о купюроприемнике
         /// </summary>
-        public static void GeBAIdentification()
+        public static void GetBAIdentification()
         {
             GetBAID = true;
             if (BillValidatorSetupData.BillValidatorFeatureLevel == 1) AddCommand(MDBCommands.RequestBAIdentification_Level1); //Request BA Expanded ID
             if (BillValidatorSetupData.BillValidatorFeatureLevel == 2) AddCommand(MDBCommands.RequestBAIdentification_Level2); //Request BA Expanded ID
             int RetryCount = 0;
-            while (CheckDispenseResult && RetryCount < 21)//таймаут ожидания ответа
+            while (GetBAID && RetryCount < 21)//таймаут ожидания ответа
             {
                 Task.Delay(100).Wait();//пауза на 0.1сек
                 RetryCount++;

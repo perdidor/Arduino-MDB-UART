@@ -118,5 +118,10 @@ namespace MDBLib_Example
         {
             MDB.DisableCashDevices();
         }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            MDB.GetCashDevicesIdentification();
+        }
     }
 }

@@ -12,5 +12,6 @@
         <ListBox x:Name="LogBox"  HorizontalAlignment="Center" Height="397" Margin="0,5,0,0" VerticalAlignment="Top" Width="780" FontSize="12" />
         <Button Content="Enable devices" HorizontalAlignment="Left" Margin="10,424,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.032,0.25" Width="137" Click="Button_Click"/>
         <Button Content="Disable devices" HorizontalAlignment="Left" Margin="186,424,0,0" VerticalAlignment="Top" Width="151" Click="Button_Click_1"/>
+        <Button Content="Get extended info" HorizontalAlignment="Left" Margin="365,424,0,0" VerticalAlignment="Top" Width="144" Click="Button_Click_2"/>
     </Grid>
 </Page>
