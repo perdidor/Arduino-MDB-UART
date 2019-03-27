@@ -651,10 +651,9 @@ namespace MDBLib
                     }
                     if (DebugEnabled) MDBDebug?.Invoke("DEBUG: CoinChangerSetupData received"); else MDBInformationMessageReceived?.Invoke("CoinChangerSetupData received");
                     if (CoinChangerSetupData.ChangerFeatureLevel == 3)
-                        Task.Run(() =>
-                        {
-                            GetChangerIdentification();
-                        });
+#pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
+                        GetChangerIdentification();
+#pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                     return;
                 }
                 if ((CheckDispenseResult) && (ResponseData.Length == 18))//информация о выданной сдаче
@@ -860,10 +859,9 @@ namespace MDBLib
                         BillValidatorSetupData.BillTypeCredit[i - 12] = ResponseData[i];
                     }
                     if (DebugEnabled) MDBDebug?.Invoke("DEBUG: BillValidatorSetupData received"); else MDBInformationMessageReceived?.Invoke("BillValidatorSetupData received");
-                    Task.Run(() =>
-                    {
-                        GetBAIdentification();
-                    });
+#pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
+                    GetBAIdentification();
+#pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                     return;
                 }
                 if (CheckBAStatus && (ResponseData.Length == 4))//Ожидаем статус стекера, размер данных совпадает
@@ -1223,14 +1221,14 @@ namespace MDBLib
         /// <summary>
         /// Запрашиваем состояние стекера купюроприемника
         /// </summary>
-        public static void GetBAStatus()
+        public static async Task GetBAStatus()
         {
             CheckBAStatus = true;
             AddCommand(MDBCommands.GetBAStatus); //Request Stacker Status
             int RetryCount = 0;
             while (CheckBAStatus && RetryCount < 21)//таймаут ожидания ответа
             {
-                Task.Delay(100).Wait();//пауза на 0.1сек
+                await Task.Delay(100);//пауза на 0.1сек
                 RetryCount++;
             }
             CheckBAStatus = false;
@@ -1239,14 +1237,14 @@ namespace MDBLib
         /// <summary>
         /// Запрашиваем состояние монетоприемника
         /// </summary>
-        public static void GetCCStatus()
+        public static async Task GetCCStatus()
         {
             CheckCCTubeStatus = true;
             AddCommand(MDBCommands.GetCCStatus); //Request CC Tube Status
             int RetryCount = 0;
             while (CheckCCTubeStatus && RetryCount < 21)//таймаут ожидания ответа
             {
-                Task.Delay(100).Wait();//пауза на 0.1сек
+                await Task.Delay(100);//пауза на 0.1сек
                 RetryCount++;
             }
             CheckCCTubeStatus = false;
@@ -1255,16 +1253,16 @@ namespace MDBLib
         /// <summary>
         /// Запрашиваем расширенную информацию
         /// </summary>
-        public static void GetCashDevicesIdentification()
+        public static async Task GetCashDevicesIdentification()
         {
             GetCoinChangerID = true;
             GetBAID = true;
             byte[][] tmpidcmds = new byte[2][]{ MDBCommands.RequestChangerIdentification, (BillValidatorSetupData.BillValidatorFeatureLevel == 2) ? MDBCommands.RequestBAIdentification_Level2 : MDBCommands.RequestBAIdentification_Level1 };
             AddCommand(tmpidcmds);
             int RetryCount = 0;
-            while (GetBAID && GetCoinChangerID && RetryCount < 21)//таймаут ожидания ответа
+            while ((GetBAID || GetCoinChangerID) && RetryCount < 21)//таймаут ожидания ответа
             {
-                Task.Delay(100).Wait();//пауза на 0.1сек
+                await Task.Delay(100);//пауза на 0.1сек
                 RetryCount++;
             }
             GetCoinChangerID = false;
@@ -1274,14 +1272,14 @@ namespace MDBLib
         /// <summary>
         /// Запрашиваем расширенную информацию о монетоприемнике
         /// </summary>
-        public static void GetChangerIdentification()
+        public static async Task GetChangerIdentification()
         {
             GetCoinChangerID = true;
             AddCommand(MDBCommands.RequestChangerIdentification); //Request CC Expanded ID
             int RetryCount = 0;
             while (GetCoinChangerID && RetryCount < 21)//таймаут ожидания ответа
             {
-                Task.Delay(100).Wait();//пауза на 0.1сек
+                await Task.Delay(100);//пауза на 0.1сек
                 RetryCount++;
             }
             GetCoinChangerID = false;
@@ -1290,15 +1288,14 @@ namespace MDBLib
         /// <summary>
         /// Запрашиваем расширенную информацию о купюроприемнике
         /// </summary>
-        public static void GetBAIdentification()
+        public static async Task GetBAIdentification()
         {
             GetBAID = true;
-            if (BillValidatorSetupData.BillValidatorFeatureLevel == 1) AddCommand(MDBCommands.RequestBAIdentification_Level1); //Request BA Expanded ID
-            if (BillValidatorSetupData.BillValidatorFeatureLevel == 2) AddCommand(MDBCommands.RequestBAIdentification_Level2); //Request BA Expanded ID
+            if (BillValidatorSetupData.BillValidatorFeatureLevel == 1) AddCommand(MDBCommands.RequestBAIdentification_Level1); else AddCommand(MDBCommands.RequestBAIdentification_Level2); //Request BA Expanded ID
             int RetryCount = 0;
             while (GetBAID && RetryCount < 21)//таймаут ожидания ответа
             {
-                Task.Delay(100).Wait();//пауза на 0.1сек
+                await Task.Delay(100);//пауза на 0.1сек
                 RetryCount++;
             }
             GetBAID = false;

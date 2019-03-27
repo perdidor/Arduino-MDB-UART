@@ -121,7 +121,9 @@ namespace MDBLib_Example
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
+#pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
             MDB.GetCashDevicesIdentification();
+#pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
         }
     }
 }
