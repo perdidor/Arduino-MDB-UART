@@ -16,31 +16,13 @@ namespace MDBLib
     /// </summary>
     public class MDB
     {
-        public delegate void MDBAdapterStartedDelegate();
+        public delegate void MDBCommmonEventDelegate();
+        public delegate void MDBCommonMessageDelegate(string Message);
+        public delegate void MDBCommonCashDelegate(double CashValue);
         public delegate void MDBCoinsDispensedManuallyDelegate(double CoinValue, int CoinsDispensed, int CoinsLeft);
-        public delegate void MDBChangerPayoutStartedDelegate();
-        public delegate void MDBBAResetedDelegate();
-        public delegate void MDBBADisabledDelegate();
-        public delegate void MDBCCUnpluggedDelegate();
-        public delegate void MDBCCPluggedDelegate();
-        public delegate void MDBBAEnabledDelegate();
-        public delegate void MDBBABusyDelegate();
-        public delegate void MDBBAReadyDelegate();
-        public delegate void MDBCCABusyDelegate();
-        public delegate void MDBCCReadyDelegate();
-        public delegate void MDBBACashBoxRemovedDelegate();
-        public delegate void MDBCCResetedDelegate();
-        public delegate void MDBCCPayoutCompleteDelegate();
-        public delegate void MDBInsertedBillDelegate(double BillValue);
-        public delegate void MDBInsertedCoinRoutedToCashBoxDelegate(double CoinValue);
-        public delegate void MDBInsertedCoinRoutedToCCTubeDelegate(double CoinValue);
-        public delegate void MDBErrorDelegate(string ErrorMessage);
-        public delegate void MDBDebugDelegate(string DebugMessage);
-        public delegate void MDBDataProcessingErrorDelegate(string DataProcessingErrorMessage);
         public delegate void MDBChangeDispensedDelegate(List<CoinsRecord> DispensedCoinsData);
         public delegate void MDBCCTubesStatusDelegate(List<CoinChangerTubeRecord> CoinChangerTubeStatusData);
         public delegate void MDBBAStackerStatusDelegate(bool StackerFull, int StackerBillsCount);
-        public delegate void MDBInformationMessageReceivedDelegate(string MDBInformationMessage);
 
         /// <summary>
         /// структура записи о количестве монет
@@ -96,6 +78,14 @@ namespace MDBLib
         /// </summary>
         private static bool GetCCSettings = false;
         /// <summary>
+        /// Флаг ожидания расширенной информации о монетоприемнике
+        /// </summary>
+        private static bool GetCoinChangerID = false;
+        /// <summary>
+        /// Флаг ожидания расширенной информации о купюроприемнике
+        /// </summary>
+        private static bool GetBAID = false;
+        /// <summary>
         /// Флаг ожидания настроек купюроприемника
         /// </summary>
         private static bool GetBASettings = false;
@@ -143,51 +133,51 @@ namespace MDBLib
         /// <summary>
         /// Монетоприемник занят
         /// </summary>
-        public static event MDBCCABusyDelegate MDBCCABusy;
+        public static event MDBCommmonEventDelegate MDBCCABusy;
         /// <summary>
         /// Монетоприемник готов
         /// </summary>
-        public static event MDBCCReadyDelegate MDBCCReady;
+        public static event MDBCommmonEventDelegate MDBCCReady;
         /// <summary>
         /// Монетоприемник закрыт
         /// </summary>
-        public static event MDBCCPluggedDelegate MDBCCPlugged;
+        public static event MDBCommmonEventDelegate MDBCCPlugged;
         /// <summary>
         /// Монетоприемник открыт
         /// </summary>
-        public static event MDBCCUnpluggedDelegate MDBCCUnplugged;
+        public static event MDBCommmonEventDelegate MDBCCUnplugged;
         /// <summary>
         /// Купюроприемник "Занят"
         /// </summary>
-        public static event MDBBABusyDelegate MDBBABusy;
+        public static event MDBCommmonEventDelegate MDBBABusy;
         /// <summary>
         /// Купюроприемник вышел из режима "Занят"
         /// </summary>
-        public static event MDBBAReadyDelegate MDBBAReady;
+        public static event MDBCommmonEventDelegate MDBBAReady;
         /// <summary>
         /// Стекер снят
         /// </summary>
-        public static event MDBBACashBoxRemovedDelegate MDBBACashBoxRemoved;
+        public static event MDBCommmonEventDelegate MDBBACashBoxRemoved;
         /// <summary>
         /// Монетоприемник закончил выдачу сдачи
         /// </summary>
-        public static event MDBCCPayoutCompleteDelegate MDBCCPayoutComplete;
+        public static event MDBCommmonEventDelegate MDBCCPayoutComplete;
         /// <summary>
         /// валидатор вышел из нерабочего режима
         /// </summary>
-        public static event MDBBAEnabledDelegate MDBBAEnabled;
+        public static event MDBCommmonEventDelegate MDBBAEnabled;
         /// <summary>
         /// валидатор не готов к приему наличных
         /// </summary>
-        public static event MDBBADisabledDelegate MDBBADisabled;
+        public static event MDBCommmonEventDelegate MDBBADisabled;
         /// <summary>
         /// Адаптер MDB-RS232 стартанул
         /// </summary>
-        public static event MDBAdapterStartedDelegate MDBAdapterStarted;
+        public static event MDBCommmonEventDelegate MDBAdapterStarted;
         /// <summary>
         /// В режиме отладки отсылаем сырые данные, которые пришли с адаптера
         /// </summary>
-        public static event MDBDebugDelegate MDBDebug;
+        public static event MDBCommonMessageDelegate MDBDebug;
         /// <summary>
         /// Монеты выданы вручную
         /// </summary>
@@ -195,23 +185,23 @@ namespace MDBLib
         /// <summary>
         /// Купюра вставлена
         /// </summary>
-        public static event MDBInsertedBillDelegate MDBInsertedBill;
+        public static event MDBCommonCashDelegate MDBInsertedBill;
         /// <summary>
         /// Ошибка при работе с шиной MDB
         /// </summary>
-        public static event MDBErrorDelegate MDBError;
+        public static event MDBCommonMessageDelegate MDBError;
         /// <summary>
         /// Ошибка при обработке данных
         /// </summary>
-        public static event MDBDataProcessingErrorDelegate MDBDataProcessingError;
+        public static event MDBCommonMessageDelegate MDBDataProcessingError;
         /// <summary>
         /// Монета упала в кешбокс
         /// </summary>
-        public static event MDBInsertedCoinRoutedToCashBoxDelegate MDBInsertedCoinRoutedToCashBox;
+        public static event MDBCommonCashDelegate MDBInsertedCoinRoutedToCashBox;
         /// <summary>
         /// Монета упала в трубку
         /// </summary>
-        public static event MDBInsertedCoinRoutedToCCTubeDelegate MDBInsertedCoinRoutedToCCTube;
+        public static event MDBCommonCashDelegate MDBInsertedCoinRoutedToCCTube;
         /// <summary>
         /// Выдана сдача
         /// </summary>
@@ -227,19 +217,19 @@ namespace MDBLib
         /// <summary>
         /// Информационное сообщение
         /// </summary>
-        public static event MDBInformationMessageReceivedDelegate MDBInformationMessageReceived;
+        public static event MDBCommonMessageDelegate MDBInformationMessageReceived;
         /// <summary>
         /// Купюроприемник выполнил команду сброс
         /// </summary>
-        public static event MDBBAResetedDelegate MDBBAReseted;
+        public static event MDBCommmonEventDelegate MDBBAReseted;
         /// <summary>
         /// Монетоприемник выполнил команду сброс
         /// </summary>
-        public static event MDBCCResetedDelegate MDBCCReseted;
+        public static event MDBCommmonEventDelegate MDBCCReseted;
         /// <summary>
         /// Монетоприемник занят вдачей сдачи
         /// </summary>
-        public static event MDBChangerPayoutStartedDelegate MDBChangerPayoutStarted;
+        public static event MDBCommmonEventDelegate MDBChangerPayoutStarted;
         /// <summary>
         /// флаг доступа к исходящим командам
         /// </summary>
@@ -264,6 +254,37 @@ namespace MDBLib
             public static int DecimalPlaces = 0;
             public static bool[] CoinsRouteable = new bool[16];
             public static int[] CoinTypeCredit = new int[16];
+        }
+
+        /// <summary>
+        /// структура расширенной информации о монетоприемнике
+        /// </summary>
+        public static class CoinChangerIDData
+        {
+            public static string ManufacturerCode = "";
+            public static string SerialNumber = "";
+            public static string ModelRevision = "";
+            public static int SoftwareVersion = 0;
+            public static bool AlternativePayout = false;
+            public static bool ExtendedDiagnostic = false;
+            public static bool ControlledManualFillAndPayout = false;
+            public static bool FTLSupported = false;
+            public static bool[] FutureUseLast28Flags = new bool[28];
+        }
+
+        /// <summary>
+        /// структура расширенной информации о купюроприемнике
+        /// </summary>
+        public static class BAIDData
+        {
+            public static string ManufacturerCode = "";
+            public static string SerialNumber = "";
+            public static string ModelRevision = "";
+            public static int SoftwareVersion = 0;
+            public static bool BillRecyclingSupported = false;
+            public static bool FTLSupported = false;
+            public static bool[] FutureUseLast30Flags = new bool[30];
+            public static int ExpectedDataLength = 0;
         }
 
         /// <summary>
@@ -612,7 +633,7 @@ namespace MDBLib
         {
             try
             {
-                if ((GetCCSettings) && (ResponseData.Length >= 9) && (ResponseData.Length <= 25))//настройки
+                if (GetCCSettings && (ResponseData.Length >= 9) && (ResponseData.Length <= 25))//настройки
                 {
                     GetCCSettings = false;
                     CoinChangerSetupData.ChangerFeatureLevel = ResponseData[1];
@@ -628,6 +649,12 @@ namespace MDBLib
                     {
                         CoinChangerSetupData.CoinTypeCredit[i - 8] = ResponseData[i];
                     }
+                    if (DebugEnabled) MDBDebug?.Invoke("DEBUG: CoinChangerSetupData received"); else MDBInformationMessageReceived?.Invoke("CoinChangerSetupData received");
+                    if (CoinChangerSetupData.ChangerFeatureLevel == 3)
+                        Task.Run(() =>
+                        {
+                            GetChangerIdentification();
+                        });
                     return;
                 }
                 if ((CheckDispenseResult) && (ResponseData.Length == 18))//информация о выданной сдаче
@@ -646,7 +673,7 @@ namespace MDBLib
                 }
                 if ((CheckCCTubeStatus) && (ResponseData.Length == 20))//информация о заполнении трубок
                 {
-                    CheckCCTubeStatus = false; ;
+                    CheckCCTubeStatus = false;
                     List<CoinChangerTubeRecord> tmptr = new List<CoinChangerTubeRecord> { };
                     var tmpfullflags = new System.Collections.BitArray(ResponseData[1] << 8 | ResponseData[2]);
                     for (int i = 3; i < ResponseData.Length - 1; i++)
@@ -654,6 +681,31 @@ namespace MDBLib
                         tmptr.Add(new CoinChangerTubeRecord { CoinsCount = ResponseData[i], IsFull = tmpfullflags[i - 3], CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[i - 3] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2) });
                     }
                     if (DebugEnabled) MDBDebug?.Invoke("DEBUG: CC tubes status received"); else MDBCCTubesStatus?.Invoke(tmptr);
+                    return;
+                }
+                if (GetCoinChangerID && (ResponseData.Length == 35))//расширенная информация о монетоприемнике
+                {
+                    GetCoinChangerID = false;
+                    CoinChangerIDData.ManufacturerCode = Encoding.ASCII.GetString(new byte[] { ResponseData[1], ResponseData[2], ResponseData[3], });
+                    byte[] snarray = new byte[12];
+                    Array.Copy(ResponseData, 4, snarray, 0, 12);
+                    CoinChangerIDData.SerialNumber = Encoding.ASCII.GetString(snarray);
+                    byte[] modarray = new byte[12];
+                    Array.Copy(ResponseData, 16, modarray, 0, 12);
+                    CoinChangerIDData.ModelRevision = Encoding.ASCII.GetString(modarray);
+                    CoinChangerIDData.SoftwareVersion = BCDByteToInt(new byte[] { ResponseData[28], ResponseData[29] });
+                    byte[] futusearray = new byte[4];
+                    Array.Copy(ResponseData, 30, futusearray, 0, 4);
+                    var tmpfullflags = new System.Collections.BitArray(futusearray);
+                    CoinChangerIDData.AlternativePayout = tmpfullflags[0];
+                    CoinChangerIDData.ExtendedDiagnostic = tmpfullflags[1];
+                    CoinChangerIDData.ControlledManualFillAndPayout = tmpfullflags[2];
+                    CoinChangerIDData.FTLSupported = tmpfullflags[3];
+                    for (int i = 4; i < tmpfullflags.Length; i++)
+                    {
+                        CoinChangerIDData.FutureUseLast28Flags[i - 4] = tmpfullflags[i];
+                    }
+                    if (DebugEnabled) MDBDebug?.Invoke("DEBUG: CoinChangerIDData received"); else MDBInformationMessageReceived?.Invoke("CoinChangerIDData received");
                     return;
                 }
                 //The Changer may send several of one type activity *, up to 16 bytes
@@ -791,6 +843,8 @@ namespace MDBLib
                 {
                     GetBASettings = false;
                     BillValidatorSetupData.BillValidatorFeatureLevel = ResponseData[1];
+                    if (BillValidatorSetupData.BillValidatorFeatureLevel == 1) BAIDData.ExpectedDataLength = 31;
+                    if (BillValidatorSetupData.BillValidatorFeatureLevel == 2) BAIDData.ExpectedDataLength = 35;
                     BillValidatorSetupData.CountryOrCurrencyCode = BCDByteToInt(new byte[2] { ResponseData[2], ResponseData[3] });
                     BillValidatorSetupData.BillScalingFactor = ResponseData[4] << 8 | ResponseData[5];
                     BillValidatorSetupData.DecimalPlaces = ResponseData[6];
@@ -805,6 +859,11 @@ namespace MDBLib
                     {
                         BillValidatorSetupData.BillTypeCredit[i - 12] = ResponseData[i];
                     }
+                    if (DebugEnabled) MDBDebug?.Invoke("DEBUG: BillValidatorSetupData received"); else MDBInformationMessageReceived?.Invoke("BillValidatorSetupData received");
+                    Task.Run(() =>
+                    {
+                        GeBAIdentification();
+                    });
                     return;
                 }
                 if (CheckBAStatus && (ResponseData.Length == 4))//Ожидаем статус стекера, размер данных совпадает
@@ -813,6 +872,32 @@ namespace MDBLib
                     bool isstackerfull = ((ResponseData[1] & 0x80) == 1);
                     int stackerbillscount = (ResponseData[7] << 8 | ResponseData[8]) & 0x0FFF;
                     if (DebugEnabled) MDBDebug?.Invoke("DEBUG: BA stacker status received"); else MDBBAStackerStatus?.Invoke(isstackerfull, stackerbillscount);
+                    return;
+                }
+                if (GetBAID && (ResponseData.Length == BAIDData.ExpectedDataLength))//расширенная информация о купюроприемнике
+                {
+                    GetBAID = false;
+                    BAIDData.ManufacturerCode = Encoding.ASCII.GetString(new byte[] { ResponseData[1], ResponseData[2], ResponseData[3], });
+                    byte[] snarray = new byte[12];
+                    Array.Copy(ResponseData, 4, snarray, 0, 12);
+                    BAIDData.SerialNumber = Encoding.ASCII.GetString(snarray);
+                    byte[] modarray = new byte[12];
+                    Array.Copy(ResponseData, 16, modarray, 0, 12);
+                    BAIDData.ModelRevision = Encoding.ASCII.GetString(modarray);
+                    BAIDData.SoftwareVersion = BCDByteToInt(new byte[] { ResponseData[28], ResponseData[29] });
+                    if (BillValidatorSetupData.BillValidatorFeatureLevel == 2)
+                    {
+                        byte[] futusearray = new byte[4];
+                        Array.Copy(ResponseData, 30, futusearray, 0, 4);
+                        var tmpfullflags = new System.Collections.BitArray(futusearray);
+                        BAIDData.FTLSupported = tmpfullflags[0];
+                        BAIDData.BillRecyclingSupported = tmpfullflags[1];
+                        for (int i = 4; i < tmpfullflags.Length; i++)
+                        {
+                            BAIDData.FutureUseLast30Flags[i - 4] = tmpfullflags[i];
+                        }
+                    }
+                    if (DebugEnabled) MDBDebug?.Invoke("DEBUG: BAIDData received"); else MDBInformationMessageReceived?.Invoke("BAIDData received");
                     return;
                 }
                 //The validator may send several of one type activity* up to 16 bytes total.
@@ -1142,6 +1227,13 @@ namespace MDBLib
         {
             CheckBAStatus = true;
             AddCommand(MDBCommands.GetBAStatus); //Request Stacker Status
+            int RetryCount = 0;
+            while (CheckDispenseResult && RetryCount < 21)//таймаут ожидания ответа
+            {
+                Task.Delay(100).Wait();//пауза на 0.1сек
+                RetryCount++;
+            }
+            CheckBAStatus = false;
         }
 
         /// <summary>
@@ -1151,7 +1243,48 @@ namespace MDBLib
         {
             CheckCCTubeStatus = true;
             AddCommand(MDBCommands.GetCCStatus); //Request CC Tube Status
+            int RetryCount = 0;
+            while (CheckDispenseResult && RetryCount < 21)//таймаут ожидания ответа
+            {
+                Task.Delay(100).Wait();//пауза на 0.1сек
+                RetryCount++;
+            }
+            CheckCCTubeStatus = false;
         }
+
+        /// <summary>
+        /// Запрашиваем расширенную информацию о монетоприемнике
+        /// </summary>
+        public static void GetChangerIdentification()
+        {
+            GetCoinChangerID = true;
+            AddCommand(MDBCommands.RequestChangerIdentification); //Request CC Expanded ID
+            int RetryCount = 0;
+            while (CheckDispenseResult && RetryCount < 21)//таймаут ожидания ответа
+            {
+                Task.Delay(100).Wait();//пауза на 0.1сек
+                RetryCount++;
+            }
+            GetCoinChangerID = false;
+        }
+
+        /// <summary>
+        /// Запрашиваем расширенную информацию о купюроприемнике
+        /// </summary>
+        public static void GeBAIdentification()
+        {
+            GetBAID = true;
+            if (BillValidatorSetupData.BillValidatorFeatureLevel == 1) AddCommand(MDBCommands.RequestBAIdentification_Level1); //Request BA Expanded ID
+            if (BillValidatorSetupData.BillValidatorFeatureLevel == 2) AddCommand(MDBCommands.RequestBAIdentification_Level2); //Request BA Expanded ID
+            int RetryCount = 0;
+            while (CheckDispenseResult && RetryCount < 21)//таймаут ожидания ответа
+            {
+                Task.Delay(100).Wait();//пауза на 0.1сек
+                RetryCount++;
+            }
+            GetBAID = false;
+        }
+
         /// <summary>
         /// Структура команд MDB
         /// </summary>
@@ -1171,6 +1304,10 @@ namespace MDBLib
             public static byte[] ChangerSetup = new byte[] { 0x09, 0x09 };
             public static byte[] BillValidatorSetup = new byte[] { 0x31, 0x31 };
             public static byte[] ReturnBill = new byte[] { 0x35, 0x00, 0x35 };
+            public static byte[] RequestChangerIdentification = new byte[] { 0x0F, 0x00, 0x0F };
+            public static byte[] RequestBAIdentification_Level1 = new byte[] { 0x37, 0x00, 0x37 };
+            public static byte[] EnableBAFeatures_Level2 = new byte[] { 0x37, 0x01, 0x38 };
+            public static byte[] RequestBAIdentification_Level2 = new byte[] { 0x37, 0x02, 0x39 };
             /// <summary>
             /// Команда выдачи сдачи
             /// </summary>
