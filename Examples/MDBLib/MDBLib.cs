@@ -682,10 +682,10 @@ namespace MDBLib
                     if (DebugEnabled) MDBDebug?.Invoke("DEBUG: MDBAdapterStarted"); else MDBAdapterStarted?.Invoke();
                     process = false;
                 }
-                tmpstr = tmpstr.Replace(" ", "");
-                ResponseData = Enumerable.Range(0, tmpstr.Length)
+                string trimmedstr = tmpstr.Replace(" ", "");
+                ResponseData = Enumerable.Range(0, trimmedstr.Length)
                      .Where(x => x % 2 == 0)
-                     .Select(x => Convert.ToByte(tmpstr.Substring(x, 2), 16))
+                     .Select(x => Convert.ToByte(trimmedstr.Substring(x, 2), 16))
                      .ToArray();
                 if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: actual length: {0}, data: {1}", ResponseData.Length, tmpstr));
                 if (ResponseData.Length == 2)//просто ACK от устройства, обрабатывать не надо
