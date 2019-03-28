@@ -677,7 +677,6 @@ namespace MDBLib
                     if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG ERROR: {0}", "Слишком большой пакет (>40 байт)")); else MDBInformationMessageReceived?.Invoke("Слишком большой пакет (>40 байт)");
                     process = false;
                 }
-                if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: Trimmed data: {0}", tmpstr));
                 if (tmpstr == "MDB-UART PLC ready") //MDB-UART adapter PLC started
                 {
                     if (DebugEnabled) MDBDebug?.Invoke("DEBUG: MDBAdapterStarted"); else MDBAdapterStarted?.Invoke();
@@ -688,6 +687,7 @@ namespace MDBLib
                      .Where(x => x % 2 == 0)
                      .Select(x => Convert.ToByte(tmpstr.Substring(x, 2), 16))
                      .ToArray();
+                if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: actual length: {0}, data: ", ResponseData.Length, tmpstr));
                 if (ResponseData.Length == 2)//просто ACK от устройства, обрабатывать не надо
                 {
                     process = false;
