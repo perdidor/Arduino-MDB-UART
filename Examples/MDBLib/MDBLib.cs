@@ -687,7 +687,7 @@ namespace MDBLib
                      .Where(x => x % 2 == 0)
                      .Select(x => Convert.ToByte(tmpstr.Substring(x, 2), 16))
                      .ToArray();
-                if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: actual length: {0}, data: ", ResponseData.Length, tmpstr));
+                if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: actual length: {0}, data: {1}", ResponseData.Length, tmpstr));
                 if (ResponseData.Length == 2)//просто ACK от устройства, обрабатывать не надо
                 {
                     process = false;
