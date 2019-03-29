@@ -86,6 +86,10 @@ namespace MDBLib
         /// </summary>
         private static bool AwaitCoinChangerID = false;
         /// <summary>
+        /// Флаг ожидания диагностики от монетоприемника
+        /// </summary>
+        private static bool AwaitCoinChangerDiagnosticData = false;
+        /// <summary>
         /// Флаг ожидания расширенной информации о купюроприемнике
         /// </summary>
         private static bool AwaitBillValidatorID = false;
@@ -273,7 +277,6 @@ namespace MDBLib
             public static bool ExtendedDiagnostic = false;
             public static bool ControlledManualFillAndPayout = false;
             public static bool FTLSupported = false;
-            public static bool[] FutureUseLast28Flags = new bool[28];
         }
 
         /// <summary>
@@ -287,7 +290,6 @@ namespace MDBLib
             public static int SoftwareVersion = 0;
             public static bool BillRecyclingSupported = false;
             public static bool FTLSupported = false;
-            public static bool[] FutureUseLast30Flags = new bool[30];
             public static int ExpectedDataLength = 0;
         }
 
@@ -337,6 +339,7 @@ namespace MDBLib
                 Task.Run(DispensedCoinsInfoTask, token);
                 Task.Run(SendCommandTask, token);
                 Task.Run(IncomingKKTDataWatcher, token);
+                Task.Run(CoinChangerDiagnosticTask, token);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
             }
             catch (Exception ex)
@@ -376,6 +379,7 @@ namespace MDBLib
                 Task.Run(DispensedCoinsInfoTask, token);
                 Task.Run(SendCommandTask, token);
                 Task.Run(IncomingKKTDataWatcher, token);
+                Task.Run(CoinChangerDiagnosticTask, token);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
             }
             catch (Exception ex)
@@ -422,6 +426,7 @@ namespace MDBLib
 
                             }
                         }
+                        await Task.Delay(5);
                     }
                 }
                 catch (TaskCanceledException)
@@ -653,6 +658,7 @@ namespace MDBLib
                 {
                     if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG ERROR: {0}, extended: {1}", ex.Message, ex.InnerException?.Message)); else MDBError?.Invoke(ex.Message);
                 }
+                Task.Delay(100).Wait();
             }
         }
 
@@ -745,6 +751,13 @@ namespace MDBLib
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                     return;
                 }
+                if (AwaitCoinChangerDiagnosticData && (ResponseData.Length >= 4) && (ResponseData.Length <= 18) && (ResponseData.Length % 2 == 0))
+                {
+#pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
+                    ProcessCoinChangerDiagnosticData(ResponseData);
+#pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
+                    return;
+                }
                 if (AwaitCoinChangerID && (ResponseData.Length == 35))//расширенная информация о монетоприемнике
                 {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
@@ -752,6 +765,7 @@ namespace MDBLib
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                     return;
                 }
+                for (int i = 1; i < ResponseData.Length - 1; i++)
                 //The CoinChanger may send several of one type activity *, up to 16 bytes
                 //total.This will permit zeroing counters such as slug, inventory, and
                 //status.
@@ -759,7 +773,6 @@ namespace MDBLib
                 //Status, and Slug. All may be combined in a response to a POLL command
                 //providing the total number of bytes does not exceed 16.Note that Coins
                 //Dispensed Manually and Coins Deposited are dual byte codes.
-                for (int i = 1; i < ResponseData.Length - 1; i++)
                 {
                     if ((ResponseData[i] & 0x80) >> 7 == 1)//информация о выданных вручную монетах
                     {
@@ -787,6 +800,257 @@ namespace MDBLib
             finally
             {
                 
+            }
+        }
+
+#pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
+        private static async Task ProcessCoinChangerDiagnosticData(byte[] CoinChangerDiagnosticData)
+#pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
+        {
+            try
+            {
+                //The changer reports its current state of operation in a 2 byte code.
+                //Multiple 2 byte codes may be sent in response to a single command
+                //which could result in a maximum of eight 2 byte codes(16 bytes total).
+                for (int i = 1; i < CoinChangerDiagnosticData.Length - 1; i++)
+                {
+                    string tmpdmsg = "Empty CoinChanger diagnostic data or processing error";
+                    bool error = false;
+                    int tmpdc = BCDByteToInt(new byte[2] { CoinChangerDiagnosticData[i], CoinChangerDiagnosticData[i + 1] });
+                    if (tmpdc == 100)
+                    {
+                        tmpdmsg = "Powering up";
+                    }
+                    if (tmpdc == 200)
+                    {
+                        tmpdmsg = "Powering down";
+                    }
+                    if (tmpdc == 300)
+                    {
+                        tmpdmsg = "OK";
+                    }
+                    if (tmpdc == 400)
+                    {
+                        tmpdmsg = "Keypad shifted";
+                    }
+                    if (tmpdc == 500)
+                    {
+                        tmpdmsg = "Manual Fill / Payout active";
+                    }
+                    if (tmpdc == 600)
+                    {
+                        tmpdmsg = "New Inventory Information Available";
+                    }
+                    if (tmpdc == 700)
+                    {
+                        tmpdmsg = "Inhibited by VMC";
+                    }
+                    if (CoinChangerDiagnosticData[i] == 0x10)
+                    {
+                        switch (CoinChangerDiagnosticData[i +1])
+                        {
+                            case 0x00:
+                                {
+                                    tmpdmsg = "Non specific error.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x01:
+                                {
+                                    tmpdmsg = "Check sum error #1.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x02:
+                                {
+                                    tmpdmsg = "Check sum error #2.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x03:
+                                {
+                                    tmpdmsg = "Low line voltage detected.";
+                                    error = true;
+                                    break;
+                                }
+                        }
+                    }
+                    if (CoinChangerDiagnosticData[i] == 0x11)
+                    {
+                        switch (CoinChangerDiagnosticData[i + 1])
+                        {
+                            case 0x00:
+                                {
+                                    tmpdmsg = "Non specific discriminator error.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x10:
+                                {
+                                    tmpdmsg = "Flight deck open.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x11:
+                                {
+                                    tmpdmsg = "Escrow Return stuck open.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x30:
+                                {
+                                    tmpdmsg = "Coin jam in sensor.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x41:
+                                {
+                                    tmpdmsg = "Discrimination below specified standard.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x50:
+                                {
+                                    tmpdmsg = "Validation sensor A out of range.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x51:
+                                {
+                                    tmpdmsg = "Validation sensor B out of range.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x52:
+                                {
+                                    tmpdmsg = "Validation sensor C out of range.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x53:
+                                {
+                                    tmpdmsg = "Operating temperature exceeded.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x54:
+                                {
+                                    tmpdmsg = "Sizing optics failure.";
+                                    error = true;
+                                    break;
+                                }
+                        }
+                    }
+                    if (CoinChangerDiagnosticData[i] == 0x12)
+                    {
+                        switch (CoinChangerDiagnosticData[i + 1])
+                        {
+                            case 0x00:
+                                {
+                                    tmpdmsg = "Non specific accept gate error.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x30:
+                                {
+                                    tmpdmsg = "Coins entered gate, but did not exit.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x31:
+                                {
+                                    tmpdmsg = "Accept gate alarm active.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x40:
+                                {
+                                    tmpdmsg = "Accept gate open, but no coin detected.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x50:
+                                {
+                                    tmpdmsg = "Post gate sensor covered before gate opened.";
+                                    error = true;
+                                    break;
+                                }
+                        }
+                    }
+                    if (CoinChangerDiagnosticData[i] == 0x13)
+                    {
+                        switch (CoinChangerDiagnosticData[i + 1])
+                        {
+                            case 0x00:
+                                {
+                                    tmpdmsg = "Non specific separator error.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x10:
+                                {
+                                    tmpdmsg = "Sort sensor error.";
+                                    error = true;
+                                    break;
+                                }
+                        }
+                    }
+                    if (CoinChangerDiagnosticData[i] == 0x14)
+                    {
+                        switch (CoinChangerDiagnosticData[i + 1])
+                        {
+                            case 0x00:
+                                {
+                                    tmpdmsg = "Non specific dispenser error.";
+                                    error = true;
+                                    break;
+                                }
+                        }
+                    }
+                    if (CoinChangerDiagnosticData[i] == 0x14)
+                    {
+                        switch (CoinChangerDiagnosticData[i + 1])
+                        {
+                            case 0x00:
+                                {
+                                    tmpdmsg = "Non specific cassette error.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x02:
+                                {
+                                    tmpdmsg = "Cassette removed.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x03:
+                                {
+                                    tmpdmsg = "Cash box sensor error.";
+                                    error = true;
+                                    break;
+                                }
+                            case 0x04:
+                                {
+                                    tmpdmsg = "Sunlight on tube sensors.";
+                                    error = true;
+                                    break;
+                                }
+                        }
+                    }
+                    if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG CoinChangerDiagnostic: {0}", tmpdmsg)); else
+                    {
+                        if (error) MDBError?.Invoke(string.Format("Coin Changer: {0}", tmpdmsg)); else MDBInformationMessageReceived?.Invoke(string.Format("Coin Changer: {0}", tmpdmsg));
+                    }
+                    i++;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG ERROR: {0}, extended: {1}", ex.Message, ex.InnerException?.Message)); else MDBDataProcessingError?.Invoke(ex.Message);
+            }
+            finally
+            {
+
             }
         }
 
@@ -920,10 +1184,6 @@ namespace MDBLib
                 CoinChangerIDData.ExtendedDiagnostic = tmpfullflags[1];
                 CoinChangerIDData.ControlledManualFillAndPayout = tmpfullflags[2];
                 CoinChangerIDData.FTLSupported = tmpfullflags[3];
-                for (int i = 4; i < tmpfullflags.Length; i++)
-                {
-                    CoinChangerIDData.FutureUseLast28Flags[i - 4] = tmpfullflags[i];
-                }
                 if (DebugEnabled) MDBDebug?.Invoke("DEBUG: CoinChangerIDData received"); else MDBInformationMessageReceived?.Invoke("CoinChangerIDData received");
             }
             catch (Exception ex)
@@ -1271,10 +1531,6 @@ namespace MDBLib
                     var tmpfullflags = new System.Collections.BitArray(futusearray);
                     BillValidatorIDData.FTLSupported = tmpfullflags[0];
                     BillValidatorIDData.BillRecyclingSupported = tmpfullflags[1];
-                    for (int i = 4; i < tmpfullflags.Length; i++)
-                    {
-                        BillValidatorIDData.FutureUseLast30Flags[i - 4] = tmpfullflags[i];
-                    }
                 }
                 if (DebugEnabled) MDBDebug?.Invoke("DEBUG: BillValidatorIDData received"); else MDBInformationMessageReceived?.Invoke("BillValidatorIDData received");
             }
@@ -1454,6 +1710,35 @@ namespace MDBLib
         }
 
         /// <summary>
+        /// Периодически запрашиваем у  монетоприемника диагностическую информацию
+        /// </summary>
+        /// <returns></returns>
+        private static async Task CoinChangerDiagnosticTask()
+        {
+            if (DebugEnabled) MDBDebug?.Invoke("Старт диагностики монетоприемника..."); else MDBInformationMessageReceived?.Invoke("Старт диагностики монетоприемника...");
+            await Task.Delay(5000);//initial delay
+            while (true)
+            {
+                if (CoinChangerSetupData.CoinChangerFeatureLevel == 3)
+                {
+                    AwaitCoinChangerDiagnosticData = true;
+                    AddCommand(MDBCommands.GetCoinChangerDiagnosticData);
+                    int RetryCount = 0;
+                    while (AwaitCoinChangerDiagnosticData && RetryCount < 21)//таймаут ожидания ответа
+                    {
+                        await Task.Delay(100);//пауза на 0.1сек
+                        RetryCount++;
+                    }
+                    AwaitCoinChangerDiagnosticData = false;
+                }
+                //Send Current Diagnostic Status - This command requests the changer to report
+                //its current state of operation.The VMC should periodically transmit the command
+                //approximately every 1 to 10 seconds.
+                await Task.Delay(7500);
+            }
+        }
+
+        /// <summary>
         /// Отсылает команды на шину MDB в "как бы полудуплексном" режиме
         /// </summary>
         /// <returns></returns>
@@ -1497,6 +1782,7 @@ namespace MDBLib
                         }
                        await Task.Delay(100);
                     }
+                    await Task.Delay(5);
                 }
                 catch (Exception ex)
                 {
@@ -1736,6 +2022,7 @@ namespace MDBLib
             public static byte[] EnableDispenseCoins = new byte[] { 0x0C, 0x00, 0x00, 0x00, 0xFF, 0x0B };
             public static byte[] GetBillValidatorStackerStatus = new byte[] { 0x36, 0x36 };
             public static byte[] GetCoinChangerTubeStatus = new byte[] { 0x0A, 0x0A };
+            public static byte[] GetCoinChangerDiagnosticData = new byte[] { 0x0F, 0x05 };
             public static byte[] GetDispensedCoinsInfo = new byte[] { 0x0F, 0x03, 0x12 };
             public static byte[] ResetBillValidator = new byte[] { 0x30, 0x30 };
             public static byte[] ResetCoinChanger = new byte[] { 0x08, 0x08 };
