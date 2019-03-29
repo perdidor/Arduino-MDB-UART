@@ -130,7 +130,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MDBLib.targets" />
     <None Include="MDBLib.nuspec" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
