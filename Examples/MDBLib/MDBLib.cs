@@ -2034,7 +2034,7 @@ namespace MDBLib
             public static byte[] EnableDispenseCoins = new byte[] { 0x0C, 0x00, 0x00, 0x00, 0xFF, 0x0B };
             public static byte[] GetBillValidatorStackerStatus = new byte[] { 0x36, 0x36 };
             public static byte[] GetCoinChangerTubeStatus = new byte[] { 0x0A, 0x0A };
-            public static byte[] GetCoinChangerDiagnosticData = new byte[] { 0x0F, 0x05 };
+            public static byte[] GetCoinChangerDiagnosticData = new byte[] { 0x0F, 0x05, 0x14 };
             public static byte[] GetDispensedCoinsInfo = new byte[] { 0x0F, 0x03, 0x12 };
             public static byte[] ResetBillValidator = new byte[] { 0x30, 0x30 };
             public static byte[] ResetCoinChanger = new byte[] { 0x08, 0x08 };

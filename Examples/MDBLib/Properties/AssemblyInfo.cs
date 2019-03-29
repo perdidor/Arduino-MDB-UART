@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("MDBLib")]
-[assembly: AssemblyDescription("Ligh level MDB wrapper for UWP (IoT apps)")]
+[assembly: AssemblyDescription(".Net High-level Multi-Drop Bus wrapper for UWP")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("MDBLib")]
@@ -24,6 +24,6 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.148")]
-[assembly: AssemblyFileVersion("1.0.0.148")]
+[assembly: AssemblyVersion("1.0.0.150")]
+[assembly: AssemblyFileVersion("1.0.0.150")]
 [assembly: ComVisible(false)]
