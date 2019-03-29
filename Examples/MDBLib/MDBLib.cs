@@ -16,14 +16,7 @@ namespace MDBLib
     /// </summary>
     public class MDB
     {
-        public delegate void MDBCommmonEventDelegate();
-        public delegate void MDBCommonMessageDelegate(string Message);
-        public delegate void MDBCommonCashDelegate(double CashValue);
-        public delegate void MDBCoinsDispensedManuallyDelegate(double CoinValue, int CoinsDispensed, int CoinsLeft);
-        public delegate void MDBChangeDispensedDelegate(List<CoinsRecord> DispensedCoinsData);
-        public delegate void MDBCoinChangerTubesStatusDelegate(List<CoinChangerTubeRecord> CoinChangerTubeStatusData);
-        public delegate void MDBBillValidatorStackerStatusDelegate(bool StackerFull, int StackerBillsCount);
-
+        #region DataStrustures
         /// <summary>
         /// структура записи о количестве монет
         /// </summary>
@@ -41,6 +34,62 @@ namespace MDBLib
             public int CoinsCount = 0;
             public bool IsFull = false;
         }
+        /// <summary>
+        /// структура расширенной информации о монетоприемнике
+        /// </summary>
+        public static class CoinChangerIDData
+        {
+            public static string ManufacturerCode = "";
+            public static string SerialNumber = "";
+            public static string ModelRevision = "";
+            public static int SoftwareVersion = 0;
+            public static bool AlternativePayout = false;
+            public static bool ExtendedDiagnostic = false;
+            public static bool ControlledManualFillAndPayout = false;
+            public static bool FTLSupported = false;
+        }
+        /// <summary>
+        /// структура расширенной информации о купюроприемнике
+        /// </summary>
+        public static class BillValidatorIDData
+        {
+            public static string ManufacturerCode = "";
+            public static string SerialNumber = "";
+            public static string ModelRevision = "";
+            public static int SoftwareVersion = 0;
+            public static bool BillRecyclingSupported = false;
+            public static bool FTLSupported = false;
+            public static int ExpectedDataLength = 0;
+        }
+        /// <summary>
+        /// структура настроек купюроприемника
+        /// </summary>
+        public static class BillValidatorSetupData
+        {
+            public static int BillValidatorFeatureLevel = 1;
+            public static int CountryOrCurrencyCode = 0;
+            public static int BillScalingFactor = 1;
+            public static int DecimalPlaces = 0;
+            public static int StackerCapacity = 0;
+            public static bool[] BillSecurityLevel = new bool[16];
+            public static bool Escrow = false;
+            public static int[] BillTypeCredit = new int[16];
+        }
+        /// <summary>
+        /// структура настроек монетоприемника
+        /// </summary>
+        public static class CoinChangerSetupData
+        {
+            public static int CoinChangerFeatureLevel = 2;
+            public static int CountryOrCurrencyCode = 0;
+            public static int CoinScalingFactor = 1;
+            public static int DecimalPlaces = 0;
+            public static bool[] CoinsRouteable = new bool[16];
+            public static int[] CoinTypeCredit = new int[16];
+        }
+        #endregion
+
+        #region Variables
         /// <summary>
         /// Последовательный порт адаптера
         /// </summary>
@@ -137,7 +186,16 @@ namespace MDBLib
         /// Таймаут ожидания выхода монетоприемника из режима "занят"
         /// </summary>
         public static DateTime CoinChangerBusyTimeout = new DateTime();
+        #endregion
 
+        #region Events
+        public delegate void MDBCommmonEventDelegate();
+        public delegate void MDBCommonMessageDelegate(string Message);
+        public delegate void MDBCommonCashDelegate(double CashValue);
+        public delegate void MDBCoinsDispensedManuallyDelegate(double CoinValue, int CoinsDispensed, int CoinsLeft);
+        public delegate void MDBChangeDispensedDelegate(List<CoinsRecord> DispensedCoinsData);
+        public delegate void MDBCoinChangerTubesStatusDelegate(List<CoinChangerTubeRecord> CoinChangerTubeStatusData);
+        public delegate void MDBBillValidatorStackerStatusDelegate(bool StackerFull, int StackerBillsCount);
         /// <summary>
         /// Монетоприемник занят
         /// </summary>
@@ -238,6 +296,8 @@ namespace MDBLib
         /// Монетоприемник занят вдачей сдачи
         /// </summary>
         public static event MDBCommmonEventDelegate MDBCoinChangerPayoutStarted;
+        #endregion
+
         /// <summary>
         /// флаг доступа к исходящим командам
         /// </summary>
@@ -250,63 +310,6 @@ namespace MDBLib
         /// флаг доступа к обработчику ответов от устройств
         /// </summary>
         private static SemaphoreSlim MDBDataProcessSemaphore = new SemaphoreSlim(1);
-
-        /// <summary>
-        /// структура настроек монетоприемника
-        /// </summary>
-        public static class CoinChangerSetupData
-        {
-            public static int CoinChangerFeatureLevel = 2;
-            public static int CountryOrCurrencyCode = 0;
-            public static int CoinScalingFactor = 1;
-            public static int DecimalPlaces = 0;
-            public static bool[] CoinsRouteable = new bool[16];
-            public static int[] CoinTypeCredit = new int[16];
-        }
-
-        /// <summary>
-        /// структура расширенной информации о монетоприемнике
-        /// </summary>
-        public static class CoinChangerIDData
-        {
-            public static string ManufacturerCode = "";
-            public static string SerialNumber = "";
-            public static string ModelRevision = "";
-            public static int SoftwareVersion = 0;
-            public static bool AlternativePayout = false;
-            public static bool ExtendedDiagnostic = false;
-            public static bool ControlledManualFillAndPayout = false;
-            public static bool FTLSupported = false;
-        }
-
-        /// <summary>
-        /// структура расширенной информации о купюроприемнике
-        /// </summary>
-        public static class BillValidatorIDData
-        {
-            public static string ManufacturerCode = "";
-            public static string SerialNumber = "";
-            public static string ModelRevision = "";
-            public static int SoftwareVersion = 0;
-            public static bool BillRecyclingSupported = false;
-            public static bool FTLSupported = false;
-            public static int ExpectedDataLength = 0;
-        }
-
-        /// <summary>
-        /// структура настроек купюроприемника
-        /// </summary>
-        public static class BillValidatorSetupData
-        {
-            public static int BillValidatorFeatureLevel = 1;
-            public static int CountryOrCurrencyCode = 0;
-            public static int BillScalingFactor = 1;
-            public static int DecimalPlaces = 0;
-            public static int StackerCapacity = 0;
-            public static bool[] BillSecurityLevel = new bool[16];
-            public static bool Escrow = false;
-            public static int[] BillTypeCredit = new int[16];
-        }
 
         /// <summary>
         /// Инициализирует последовательный порт для работы с адаптером (Исключая указанный порт)
@@ -338,7 +341,7 @@ namespace MDBLib
                 Task.Run(ListenMDBSerialPort, token);
                 Task.Run(DispensedCoinsInfoTask, token);
                 Task.Run(SendCommandTask, token);
-                Task.Run(IncomingKKTDataWatcher, token);
+                Task.Run(IncomingMDBDataWatcher, token);
                 Task.Run(CoinChangerDiagnosticTask, token);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
             }
@@ -378,7 +381,7 @@ namespace MDBLib
                 Task.Run(ListenMDBSerialPort, token);
                 Task.Run(DispensedCoinsInfoTask, token);
                 Task.Run(SendCommandTask, token);
-                Task.Run(IncomingKKTDataWatcher, token);
+                Task.Run(IncomingMDBDataWatcher, token);
                 Task.Run(CoinChangerDiagnosticTask, token);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
             }
@@ -453,7 +456,7 @@ namespace MDBLib
         /// </summary>
         /// <returns></returns>
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        public static async Task IncomingKKTDataWatcher()
+        public static async Task IncomingMDBDataWatcher()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             while (true)
@@ -726,6 +729,10 @@ namespace MDBLib
             }
         }
 
+        /// <summary>
+        /// Обработка ответа монетоприемника
+        /// </summary>
+        /// <param name="ResponseData"></param>
         private static void ProcessCoinChangerResponse(byte[] ResponseData)
         {
             try
@@ -803,6 +810,11 @@ namespace MDBLib
             }
         }
 
+        /// <summary>
+        /// обработка диагностических данных с монетоприемника
+        /// </summary>
+        /// <param name="CoinChangerDiagnosticData"></param>
+        /// <returns></returns>
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         private static async Task ProcessCoinChangerDiagnosticData(byte[] CoinChangerDiagnosticData)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
