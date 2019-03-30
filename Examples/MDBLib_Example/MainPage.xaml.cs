@@ -33,10 +33,6 @@ namespace MDBLib_Example
                 MDB.MDBDebug += MDB_MDBDebug;
                 MDB.DebugEnabled = true;
                 MDB.InitWithSerialPortExact("\\\\?\\FTDIBUS#VID_0403+PID_6001+6&38a36d0c&0&4#0000#{86e0d1e0-8089-11d0-9ce4-08003e301f73}", GlobalCancellationTokenSource.Token);
-                while (MDB.MDBSerialPort == null)
-                {
-                    await Task.Delay(100);
-                }
             }
             catch (Exception ex)
             {
@@ -100,18 +96,18 @@ namespace MDBLib_Example
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            MDB.EnableCashDevices();
+            MDB.EnableCashDevicesAsync();
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            MDB.DisableCashDevices();
+            MDB.DisableCashDevicesAsync();
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-            MDB.GetCashDevicesIdentification();
+            MDB.GetCashDevicesIdentificationAsync();
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
         }
     }

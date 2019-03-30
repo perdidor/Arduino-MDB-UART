@@ -16,7 +16,7 @@ namespace MDBLib
     /// </summary>
     public class MDB
     {
-        #region DataStrustures
+        #region Data Strustures
         /// <summary>
         /// структура записи о количестве монет
         /// </summary>
@@ -93,7 +93,7 @@ namespace MDBLib
         /// <summary>
         /// Последовательный порт адаптера
         /// </summary>
-        public static SerialDevice MDBSerialPort = null;
+        private static SerialDevice MDBSerialPort = null;
         /// <summary>
         /// Список исходящих команд
         /// </summary>
@@ -169,23 +169,23 @@ namespace MDBLib
         /// <summary>
         /// Таймаут ожидания выдачи сдачи (обновляется при каждом получении информации о выдаче)
         /// </summary>
-        public static DateTime DispenseTimeout = new DateTime();
+        private static DateTime DispenseTimeout = new DateTime();
         /// <summary>
         /// Таймаут ожидания выхода купюроприемника из нерабочего режима
         /// </summary>
-        public static DateTime BillValidatorDisabledTimeout = new DateTime();
+        private static DateTime BillValidatorDisabledTimeout = new DateTime();
         /// <summary>
         /// Таймаут ожидания выхода купюроприемника из режима "занят"
         /// </summary>
-        public static DateTime BillValidatorBusyTimeout = new DateTime();
+        private static DateTime BillValidatorBusyTimeout = new DateTime();
         /// <summary>
         /// Таймаут ожидания подключения монетоприемника
         /// </summary>
-        public static DateTime CoinChangerUnpluggedTimeout = new DateTime();
+        private static DateTime CoinChangerUnpluggedTimeout = new DateTime();
         /// <summary>
         /// Таймаут ожидания выхода монетоприемника из режима "занят"
         /// </summary>
-        public static DateTime CoinChangerBusyTimeout = new DateTime();
+        private static DateTime CoinChangerBusyTimeout = new DateTime();
         #endregion
 
         #region Events
@@ -298,6 +298,7 @@ namespace MDBLib
         public static event MDBCommmonEventDelegate MDBCoinChangerPayoutStarted;
         #endregion
 
+        #region Semaphores
         /// <summary>
         /// флаг доступа к исходящим командам
         /// </summary>
@@ -310,7 +311,9 @@ namespace MDBLib
         /// флаг доступа к обработчику ответов от устройств
         /// </summary>
         private static SemaphoreSlim MDBDataProcessSemaphore = new SemaphoreSlim(1);
+        #endregion
 
+        #region Library Initialization
         /// <summary>
         /// Инициализирует последовательный порт для работы с адаптером (Исключая указанный порт)
         /// </summary>
@@ -390,7 +393,9 @@ namespace MDBLib
                 if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG ERROR: {0}, extended: {1}", ex.Message, ex.InnerException?.Message)); else MDBError?.Invoke(ex.Message);
             }
         }
+        #endregion
 
+        #region Reading Serial port Data
         /// <summary>
         /// Считывает данные с ппоследовательного порта шины MDB
         /// </summary>
@@ -417,7 +422,7 @@ namespace MDBLib
                                 byte[] tmpbyte = new byte[bytesRead];
                                 MDBSerialDataReaderObject.ReadBytes(tmpbyte);
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                                AddIncomingData(tmpbyte);
+                                AddIncomingDataAsync(tmpbyte);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                             }
                             catch
@@ -456,7 +461,7 @@ namespace MDBLib
         /// </summary>
         /// <returns></returns>
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        public static async Task IncomingMDBDataWatcher()
+        private static async Task IncomingMDBDataWatcher()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             while (true)
@@ -490,7 +495,7 @@ namespace MDBLib
                         try
                         {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                            MDBIncomingDataProcess(IncomingMDBData.GetRange(0, endpos - 1).ToArray());
+                            MDBIncomingDataProcessAsync(IncomingMDBData.GetRange(0, endpos - 1).ToArray());
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                             IncomingMDBData.RemoveRange(0, endpos + 1);
                         }
@@ -502,7 +507,7 @@ namespace MDBLib
                 }
                 m.ReleaseMutex();
                 m.Dispose();
-                Task.Delay(10).Wait();
+                Task.Delay(5).Wait();
             }
         }
 
@@ -512,7 +517,7 @@ namespace MDBLib
         /// </summary>
         /// <param name="answerdata"></param>
         /// <returns></returns>
-        public static async Task AddIncomingData(byte[] answerdata)
+        private static async Task AddIncomingDataAsync(byte[] answerdata)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             Mutex m = new Mutex(true, "MDBIncomingDataAccessMutex", out bool mutexWasCreated);
@@ -538,133 +543,6 @@ namespace MDBLib
             m.Dispose();
         }
 
-        /// <summary>
-        /// Закрывает последовательный порт шины MDB
-        /// </summary>
-        private static void CloseMDBSerialDevice()
-        {
-            if (MDBSerialPort != null)
-            {
-                MDBSerialPort.Dispose();
-            }
-            MDBSerialPort = null;
-        }
-
-        /// <summary>
-        /// Запускается при первом сообщении "BillValidator Unit Disabled".
-        /// </summary>
-        /// <returns></returns>
-        private static async Task BillValidator_DisabledWatch()
-        {
-            BillValidatorEnableStatus = false;
-            if (DebugEnabled) MDBDebug?.Invoke("BillValidator Unit Disabled"); else MDBBillValidatorDisabled?.Invoke();
-            while (BillValidatorDisabledTimeout > DateTime.Now)
-            {
-                await Task.Delay(100);
-            }
-            BillValidatorEnableStatus = true;
-            if (DebugEnabled) MDBDebug?.Invoke("BillValidator Unit Enabled"); else MDBBillValidatorEnabled?.Invoke();
-        }
-
-        /// <summary>
-        /// Запускается при первом сообщении "Валидатор занят обработкой данных".
-        /// </summary>
-        /// <returns></returns>
-        private static async Task BillValidator_BusyWatch()
-        {
-            BillValidatorReadyStatus = false;
-            if (DebugEnabled) MDBDebug?.Invoke("BillValidator Unit Busy"); else MDBBillValidatorBusy?.Invoke();
-            while (BillValidatorBusyTimeout > DateTime.Now)
-            {
-                await Task.Delay(100);
-            }
-            BillValidatorReadyStatus = true;
-            if (DebugEnabled) MDBDebug?.Invoke("BillValidator Unit Ready"); else MDBBillValidatorReady?.Invoke();
-        }
-
-        /// <summary>
-        /// Запускается при первом сообщении "Монетоприемник открыт".
-        /// </summary>
-        /// <returns></returns>
-        private static async Task CoinChanger_UnpluggedWatch()
-        {
-            CoinChangerPluggedStatus = false;
-            if (DebugEnabled) MDBDebug?.Invoke("Acceptor Unplugged"); else MDBCoinChangerUnplugged?.Invoke();
-            while (CoinChangerUnpluggedTimeout > DateTime.Now)
-            {
-                await Task.Delay(100);
-            }
-            CoinChangerPluggedStatus = true;
-            if (DebugEnabled) MDBDebug?.Invoke("Acceptor Plugged"); else MDBCoinChangerPlugged?.Invoke();
-        }
-
-        /// <summary>
-        /// Запускается в начале выдачи сдачи монетами (при первом сообщении "CoinChanger Payout Busy").
-        /// </summary>
-        /// <returns></returns>
-        private static async Task CoinChanger_DispenseWatch()
-        {
-            DispenseInProgress = true;
-            if (DebugEnabled) MDBDebug?.Invoke("CoinChanger Payout Started"); else MDBCoinChangerPayoutStarted?.Invoke();
-            while (DispenseTimeout > DateTime.Now)
-            {
-                await Task.Delay(100);
-            }
-            DispenseInProgress = false;
-            AwaitDispenseResult = true;
-            if (DebugEnabled) MDBDebug?.Invoke("CoinChanger Payout Complete"); else MDBCoinChangerPayoutComplete?.Invoke();
-        }
-
-        /// <summary>
-        /// Запускается при первом сообщении "CoinChanger Busy".
-        /// </summary>
-        /// <returns></returns>
-        private static async Task CoinChanger_BusyWatch()
-        {
-            CoinChangerReadyStatus = false;
-            if (DebugEnabled) MDBDebug?.Invoke("CoinChanger Busy"); else MDBCoinChangerBusy?.Invoke();
-            while (DispenseTimeout > DateTime.Now)
-            {
-                await Task.Delay(100);
-            }
-            CoinChangerReadyStatus = true;
-            if (DebugEnabled) MDBDebug?.Invoke("CoinChanger Ready"); else MDBCoinChangerReady?.Invoke();
-        }
-
-        /// <summary>
-        /// отслеживает выдачу сдачи
-        /// </summary>
-        public static Task DispensedCoinsInfoTask()
-        {
-            Task.Delay(1000).Wait();
-            if (DebugEnabled) MDBDebug?.Invoke("Старт отслеживания выданной сдачи..."); else MDBInformationMessageReceived?.Invoke("Старт отслеживания выданной сдачи...");
-            while (true)
-            {
-                try
-                {
-                    if (AwaitDispenseResult)
-                    {
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                        GetDispensedInfo();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                        if (DebugEnabled) MDBDebug?.Invoke("Ожидаем данные о выданной сдаче..."); else MDBInformationMessageReceived?.Invoke("Ожидаем данные о выданной сдаче...");
-                        int RetryCount = 0;
-                        while (AwaitDispenseResult && RetryCount < 51)//ждать ответа от монетоприемника будем 5 секунд, потом забъем хуй и продолжим работать
-                        {
-                            Task.Delay(100).Wait();//пауза на 0.1сек
-                            RetryCount++;
-                        }
-                        AwaitDispenseResult = false;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG ERROR: {0}, extended: {1}", ex.Message, ex.InnerException?.Message)); else MDBError?.Invoke(ex.Message);
-                }
-                Task.Delay(100).Wait();
-            }
-        }
-
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         /// <summary>
         /// MDB answer processing method.
@@ -672,7 +550,7 @@ namespace MDBLib
         /// </summary>
         /// <param name="MDBStringData">String representation if incoming MDB serial data</param>
         /// <returns>none</returns>
-        private static async Task MDBIncomingDataProcess(byte[] MDBStringData)
+        private static async Task MDBIncomingDataProcessAsync(byte[] MDBStringData)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         {
             byte[] ResponseData = new byte[] { };
@@ -725,10 +603,141 @@ namespace MDBLib
             }
             finally
             {
-                
+
             }
         }
 
+        /// <summary>
+        /// Закрывает последовательный порт шины MDB
+        /// </summary>
+        private static void CloseMDBSerialDevice()
+        {
+            if (MDBSerialPort != null)
+            {
+                MDBSerialPort.Dispose();
+            }
+            MDBSerialPort = null;
+        }
+        #endregion
+
+        #region Internal Watch tasks
+        /// <summary>
+        /// Запускается при первом сообщении "BillValidator Unit Disabled".
+        /// </summary>
+        /// <returns></returns>
+        private static async Task BillValidator_DisabledWatchAsync()
+        {
+            BillValidatorEnableStatus = false;
+            if (DebugEnabled) MDBDebug?.Invoke("BillValidator Unit Disabled"); else MDBBillValidatorDisabled?.Invoke();
+            while (BillValidatorDisabledTimeout > DateTime.Now)
+            {
+                await Task.Delay(100);
+            }
+            BillValidatorEnableStatus = true;
+            if (DebugEnabled) MDBDebug?.Invoke("BillValidator Unit Enabled"); else MDBBillValidatorEnabled?.Invoke();
+        }
+
+        /// <summary>
+        /// Запускается при первом сообщении "Валидатор занят обработкой данных".
+        /// </summary>
+        /// <returns></returns>
+        private static async Task BillValidator_BusyWatchAsync()
+        {
+            BillValidatorReadyStatus = false;
+            if (DebugEnabled) MDBDebug?.Invoke("BillValidator Unit Busy"); else MDBBillValidatorBusy?.Invoke();
+            while (BillValidatorBusyTimeout > DateTime.Now)
+            {
+                await Task.Delay(100);
+            }
+            BillValidatorReadyStatus = true;
+            if (DebugEnabled) MDBDebug?.Invoke("BillValidator Unit Ready"); else MDBBillValidatorReady?.Invoke();
+        }
+
+        /// <summary>
+        /// Запускается при первом сообщении "Монетоприемник открыт".
+        /// </summary>
+        /// <returns></returns>
+        private static async Task CoinChanger_UnpluggedWatchAsync()
+        {
+            CoinChangerPluggedStatus = false;
+            if (DebugEnabled) MDBDebug?.Invoke("Acceptor Unplugged"); else MDBCoinChangerUnplugged?.Invoke();
+            while (CoinChangerUnpluggedTimeout > DateTime.Now)
+            {
+                await Task.Delay(100);
+            }
+            CoinChangerPluggedStatus = true;
+            if (DebugEnabled) MDBDebug?.Invoke("Acceptor Plugged"); else MDBCoinChangerPlugged?.Invoke();
+        }
+
+        /// <summary>
+        /// Запускается в начале выдачи сдачи монетами (при первом сообщении "CoinChanger Payout Busy").
+        /// </summary>
+        /// <returns></returns>
+        private static async Task CoinChanger_DispenseWatchAsync()
+        {
+            DispenseInProgress = true;
+            if (DebugEnabled) MDBDebug?.Invoke("CoinChanger Payout Started"); else MDBCoinChangerPayoutStarted?.Invoke();
+            while (DispenseTimeout > DateTime.Now)
+            {
+                await Task.Delay(100);
+            }
+            DispenseInProgress = false;
+            AwaitDispenseResult = true;
+            if (DebugEnabled) MDBDebug?.Invoke("CoinChanger Payout Complete"); else MDBCoinChangerPayoutComplete?.Invoke();
+        }
+
+        /// <summary>
+        /// Запускается при первом сообщении "CoinChanger Busy".
+        /// </summary>
+        /// <returns></returns>
+        private static async Task CoinChanger_BusyWatchAsync()
+        {
+            CoinChangerReadyStatus = false;
+            if (DebugEnabled) MDBDebug?.Invoke("CoinChanger Busy"); else MDBCoinChangerBusy?.Invoke();
+            while (DispenseTimeout > DateTime.Now)
+            {
+                await Task.Delay(100);
+            }
+            CoinChangerReadyStatus = true;
+            if (DebugEnabled) MDBDebug?.Invoke("CoinChanger Ready"); else MDBCoinChangerReady?.Invoke();
+        }
+
+        /// <summary>
+        /// отслеживает выдачу сдачи
+        /// </summary>
+        private static Task DispensedCoinsInfoTask()
+        {
+            Task.Delay(1000).Wait();
+            if (DebugEnabled) MDBDebug?.Invoke("Старт отслеживания выданной сдачи..."); else MDBInformationMessageReceived?.Invoke("Старт отслеживания выданной сдачи...");
+            while (true)
+            {
+                try
+                {
+                    if (AwaitDispenseResult)
+                    {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                        GetDispensedInfoAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                        if (DebugEnabled) MDBDebug?.Invoke("Ожидаем данные о выданной сдаче..."); else MDBInformationMessageReceived?.Invoke("Ожидаем данные о выданной сдаче...");
+                        int RetryCount = 0;
+                        while (AwaitDispenseResult && RetryCount < 51)//ждать ответа от монетоприемника будем 5 секунд, потом забъем хуй и продолжим работать
+                        {
+                            Task.Delay(100).Wait();//пауза на 0.1сек
+                            RetryCount++;
+                        }
+                        AwaitDispenseResult = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG ERROR: {0}, extended: {1}", ex.Message, ex.InnerException?.Message)); else MDBError?.Invoke(ex.Message);
+                }
+                Task.Delay(100).Wait();
+            }
+        }
+        #endregion
+
+        #region Process Coin Changer response
         /// <summary>
         /// Обработка ответа монетоприемника
         /// </summary>
@@ -740,35 +749,35 @@ namespace MDBLib
                 if (AwaitCoinChangerSettings && (ResponseData.Length >= 9) && (ResponseData.Length <= 25))//настройки
                 {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                    ProcessChangetSettings(ResponseData);
+                    ProcessChangetSettingsAsync(ResponseData);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                     return;
                 }
                 if ((AwaitDispenseResult) && (ResponseData.Length == 18))//информация о выданной сдаче
                 {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                    ProcessCoinChangerDispensedChangeData(ResponseData);
+                    ProcessCoinChangerDispensedChangeDataAsync(ResponseData);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                     return;
                 }
                 if ((AwaitCoinChangerTubeStatus) && (ResponseData.Length == 20))//информация о заполнении трубок
                 {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                    ProcessCoinChangerTubeStatus(ResponseData);
+                    ProcessCoinChangerTubeStatusAsync(ResponseData);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                     return;
                 }
                 if (AwaitCoinChangerDiagnosticData && (ResponseData.Length >= 4) && (ResponseData.Length <= 18) && (ResponseData.Length % 2 == 0))
                 {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                    ProcessCoinChangerDiagnosticData(ResponseData);
+                    ProcessCoinChangerDiagnosticDataAsync(ResponseData);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                     return;
                 }
                 if (AwaitCoinChangerID && (ResponseData.Length == 35))//расширенная информация о монетоприемнике
                 {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                    ProcessCoinChangerExtendedInfo(ResponseData);
+                    ProcessCoinChangerExtendedInfoAsync(ResponseData);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                     return;
                 }
@@ -784,19 +793,19 @@ namespace MDBLib
                     if ((ResponseData[i] & 0x80) >> 7 == 1)//информация о выданных вручную монетах
                     {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                        ProcessManualDispenseData(new byte[2] { ResponseData[i], ResponseData[i + 1] });
+                        ProcessManualDispenseDataAsync(new byte[2] { ResponseData[i], ResponseData[i + 1] });
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                         i++;
                     } else
                     if ((ResponseData[i] & 0x40) >> 6 == 1)//закинута монета
                     {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                        ProcessCoinChangerDepositCoin(new byte[2] { ResponseData[i], ResponseData[i + 1] });
+                        ProcessCoinChangerDepositCoinAsync(new byte[2] { ResponseData[i], ResponseData[i + 1] });
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                         i++;
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                     }
-                    else ProcessCoinChangerError(ResponseData[i]);
+                    else ProcessCoinChangerActivityAsync(ResponseData[i]);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                 }
             }
@@ -816,7 +825,7 @@ namespace MDBLib
         /// <param name="CoinChangerDiagnosticData"></param>
         /// <returns></returns>
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
-        private static async Task ProcessCoinChangerDiagnosticData(byte[] CoinChangerDiagnosticData)
+        private static async Task ProcessCoinChangerDiagnosticDataAsync(byte[] CoinChangerDiagnosticData)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         {
             try
@@ -1019,7 +1028,7 @@ namespace MDBLib
                                 }
                         }
                     }
-                    if (CoinChangerDiagnosticData[i] == 0x14)
+                    if (CoinChangerDiagnosticData[i] == 0x15)
                     {
                         switch (CoinChangerDiagnosticData[i + 1])
                         {
@@ -1072,7 +1081,7 @@ namespace MDBLib
         /// <param name="CoinChangerSettingsData"></param>
         /// <returns></returns>
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
-        private static async Task ProcessChangetSettings(byte[] CoinChangerSettingsData)
+        private static async Task ProcessChangetSettingsAsync(byte[] CoinChangerSettingsData)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         {
             try
@@ -1094,7 +1103,7 @@ namespace MDBLib
                 if (DebugEnabled) MDBDebug?.Invoke("DEBUG: CoinChangerSetupData received"); else MDBInformationMessageReceived?.Invoke("CoinChangerSetupData received");
                 if (CoinChangerSetupData.CoinChangerFeatureLevel == 3)
     #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                    GetCoinChangerIdentification();
+                    GetCoinChangerIdentificationAsync();
     #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
             }
             catch (Exception ex)
@@ -1113,7 +1122,7 @@ namespace MDBLib
         /// <param name="ChangeData"></param>
         /// <returns></returns>
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
-        private static async Task ProcessCoinChangerDispensedChangeData(byte[] ChangeData)
+        private static async Task ProcessCoinChangerDispensedChangeDataAsync(byte[] ChangeData)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         {
             try
@@ -1128,6 +1137,9 @@ namespace MDBLib
                     }
                 }
                 if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: dispensed sum value={0}", tmpcr.Sum(x => x.CoinValue))); else MDBChangeDispensed?.Invoke(tmpcr);
+#pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
+                GetCoinChangerTubeStatusAsync();
+#pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
             }
             catch (Exception ex)
             {
@@ -1145,7 +1157,7 @@ namespace MDBLib
         /// <param name="TubeStatusData"></param>
         /// <returns></returns>
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
-        private static async Task ProcessCoinChangerTubeStatus(byte[] TubeStatusData)
+        private static async Task ProcessCoinChangerTubeStatusAsync(byte[] TubeStatusData)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         {
             try
@@ -1175,7 +1187,7 @@ namespace MDBLib
         /// <param name="CoinChangerExtInfo"></param>
         /// <returns></returns>
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
-        private static async Task ProcessCoinChangerExtendedInfo(byte[] CoinChangerExtInfo)
+        private static async Task ProcessCoinChangerExtendedInfoAsync(byte[] CoinChangerExtInfo)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         {
             try
@@ -1214,7 +1226,7 @@ namespace MDBLib
         /// <param name="ManualDispenseData"></param>
         /// <returns></returns>
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
-        private static async Task ProcessManualDispenseData(byte[] ManualDispenseData)
+        private static async Task ProcessManualDispenseDataAsync(byte[] ManualDispenseData)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         {
             try
@@ -1224,6 +1236,9 @@ namespace MDBLib
                 int CoinsLeft = ManualDispenseData[1];//byte 2
                 double CoinValue = Math.Round(CoinChangerSetupData.CoinScalingFactor * CoinChangerSetupData.CoinTypeCredit[CoinType] * (1 / Math.Pow(10, CoinChangerSetupData.DecimalPlaces)), 2);
                 if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: MDBCoinsDispensedManually type={3}, value={0}, qty={1}, coinsleft={2}", CoinValue, CoinsQuantity, CoinsLeft, CoinType)); else MDBCoinsDispensedManually?.Invoke(CoinValue, CoinsQuantity, CoinsLeft);
+#pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
+                GetCoinChangerTubeStatusAsync();
+#pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
             }
             catch (Exception ex)
             {
@@ -1241,7 +1256,7 @@ namespace MDBLib
         /// <param name="CoinChangerErrorData"></param>
         /// <returns></returns>
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        private static async Task ProcessCoinChangerError(byte CoinChangerErrorData)
+        private static async Task ProcessCoinChangerActivityAsync(byte CoinChangerErrorData)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             try
@@ -1256,7 +1271,7 @@ namespace MDBLib
                         if (!DispenseInProgress)
                         {
     #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                            CoinChanger_DispenseWatch();
+                            CoinChanger_DispenseWatchAsync();
     #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                         }
                         break;
@@ -1274,7 +1289,7 @@ namespace MDBLib
                         if (CoinChangerPluggedStatus)
                         {
     #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                            CoinChanger_UnpluggedWatch();
+                            CoinChanger_UnpluggedWatchAsync();
     #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                         }
                         break;
@@ -1292,11 +1307,14 @@ namespace MDBLib
                         if (CoinChangerReadyStatus)
                         {
     #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                            CoinChanger_BusyWatch();
+                            CoinChanger_BusyWatchAsync();
     #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                         }
                         break;
                     case 11:
+#pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
+                        GetCoinChangerSettingsAsync();
+#pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                         MDBCoinChangerReseted?.Invoke();
                         break;
                     case 12:
@@ -1322,7 +1340,7 @@ namespace MDBLib
         /// <param name="DepositCoinBytes"></param>
         /// <returns></returns>
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
-        private static async Task ProcessCoinChangerDepositCoin(byte[] DepositCoinBytes)
+        private static async Task ProcessCoinChangerDepositCoinAsync(byte[] DepositCoinBytes)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         {
             try
@@ -1360,7 +1378,9 @@ namespace MDBLib
 
             }
         }
+        #endregion
 
+        #region Process Bill Validator Response
         /// <summary>
         /// Обрабатываем ответ от купюроприемника
         /// </summary>
@@ -1372,7 +1392,7 @@ namespace MDBLib
                 if ((AwaitBillValidatorSettings) && (ResponseData.Length == 29))//Ожидаем настройки, размер данных совпадает
                 {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                    ProcessBillValidatorSettings(ResponseData);
+                    ProcessBillValidatorSettingsAsync(ResponseData);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                     return;
                 }
@@ -1386,7 +1406,7 @@ namespace MDBLib
                 if (AwaitBillValidatorID && (ResponseData.Length == BillValidatorIDData.ExpectedDataLength))//расширенная информация о купюроприемнике
                 {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                    ProcessBillValidatorExtendedData(ResponseData);
+                    ProcessBillValidatorExtendedDataAsync(ResponseData);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                     return;
                 }
@@ -1397,7 +1417,7 @@ namespace MDBLib
                 for (int i = 1; i < ResponseData.Length - 1; i++)
                 {
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                    ProcessBillValidatorActivity(ResponseData[i]);
+                    ProcessBillValidatorActivityAsync(ResponseData[i]);
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                 }
             }
@@ -1443,7 +1463,7 @@ namespace MDBLib
         /// <param name="BillValidatorActivityByte"></param>
         /// <returns></returns>
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
-        private static async Task ProcessBillValidatorActivity(byte BillValidatorActivityByte)
+        private static async Task ProcessBillValidatorActivityAsync(byte BillValidatorActivityByte)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         {
             try
@@ -1457,7 +1477,7 @@ namespace MDBLib
                         break;
                     case 0://сообщение статуса
     #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                        ProcessBillValidatorStatus(BillValidatorActivityByte);
+                        ProcessBillValidatorStatusAsync(BillValidatorActivityByte);
     #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                         break;
                 }
@@ -1478,7 +1498,7 @@ namespace MDBLib
         /// <param name="SettingsData"></param>
         /// <returns></returns>
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
-        private static async Task ProcessBillValidatorSettings(byte[] SettingsData)
+        private static async Task ProcessBillValidatorSettingsAsync(byte[] SettingsData)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         {
             try
@@ -1503,7 +1523,7 @@ namespace MDBLib
                 }
                 if (DebugEnabled) MDBDebug?.Invoke("DEBUG: BillValidatorSetupData received"); else MDBInformationMessageReceived?.Invoke("BillValidatorSetupData received");
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
-                GetBillValidatorIdentification();
+                GetBillValidatorIdentificationAsync();
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
             }
             catch (Exception ex)
@@ -1522,7 +1542,7 @@ namespace MDBLib
         /// <param name="Data"></param>
         /// <returns></returns>
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
-        private static async Task ProcessBillValidatorExtendedData(byte[] Data)
+        private static async Task ProcessBillValidatorExtendedDataAsync(byte[] Data)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         {
             try
@@ -1562,7 +1582,7 @@ namespace MDBLib
         /// <param name="StatusByte"></param>
         /// <returns></returns>
 #pragma warning disable CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
-        private static async Task ProcessBillValidatorStatus(byte StatusByte)
+        private static async Task ProcessBillValidatorStatusAsync(byte StatusByte)
 #pragma warning restore CS1998 // В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод
         {
             try
@@ -1588,7 +1608,7 @@ namespace MDBLib
                             if (BillValidatorReadyStatus)
                             {
     #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                                BillValidator_BusyWatch();
+                                BillValidator_BusyWatchAsync();
     #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                             }
                             break;
@@ -1600,6 +1620,9 @@ namespace MDBLib
                             break;
                         case 6:
                             if (DebugEnabled) MDBDebug?.Invoke("Bill validator Reseted"); else MDBBillValidatorReseted?.Invoke();
+#pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
+                            GetBillValidatorSettingsAsync();
+#pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                             break;
                         case 7:
                             if (DebugEnabled) MDBDebug?.Invoke("BillValidator Bill Removed"); else MDBInformationMessageReceived?.Invoke("BillValidator Bill Removed");
@@ -1612,7 +1635,7 @@ namespace MDBLib
                             if (BillValidatorEnableStatus)
                             {
     #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                                BillValidator_DisabledWatch();
+                                BillValidator_DisabledWatchAsync();
     #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                             }
                             break;
@@ -1639,29 +1662,14 @@ namespace MDBLib
 
             }
         }
+        #endregion
 
-        /// <summary>
-        /// Преобразует массив байт BCD в целое число
-        /// </summary>
-        /// <param name="BCDBytes"></param>
-        /// <returns></returns>
-        public static int BCDByteToInt(byte[] BCDBytes)
-        {
-            int res = 0;
-            for (int i = 0; i < BCDBytes.Length; i++)
-            {
-                res *= 100;
-                res += (10 * (BCDBytes[i] >> 4));
-                res += (BCDBytes[i] & 0xf);
-            }
-            return res;
-        }
-
+        #region Public Methods
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Возвращаем купюру из Escrow
         /// </summary>
-        public static async Task ReturnBill()
+        public static async Task ReturnBillAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             AddCommand(MDBCommands.ReturnBill);
@@ -1670,7 +1678,7 @@ namespace MDBLib
         /// <summary>
         /// запрос настроек валидатора
         /// </summary>
-        public static async Task GetBillValidatorSettings()
+        public static async Task GetBillValidatorSettingsAsync()
         {
             AwaitBillValidatorSettings = true;
             AddCommand(MDBCommands.BillValidatorSetup); //Request Stacker Status
@@ -1686,7 +1694,7 @@ namespace MDBLib
         /// <summary>
         /// запрос настроек монетоприемника
         /// </summary>
-        public static async Task GetCoinChangerSettings()
+        public static async Task GetCoinChangerSettingsAsync()
         {
             AwaitCoinChangerSettings = true;
             AddCommand(MDBCommands.CoinChangerSetup); //Request Stacker Status
@@ -1704,10 +1712,11 @@ namespace MDBLib
         /// Выдаем сдачу монетами
         /// </summary>
         /// <param name="PayOutSum"></param>
-        public static async Task PayoutCoins(int PayOutSum)
+        public static async Task PayoutCoinsAsync(int PayOutSum)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             byte[] payouttmpcmd = MDBCommands.PayoutCoins(PayOutSum);
+            DispenseTimeout = DateTime.Now.AddSeconds(5);
             AddCommand(payouttmpcmd);
         }
 
@@ -1715,7 +1724,7 @@ namespace MDBLib
         /// <summary>
         /// Запрашиваем информацию о выданной сдаче
         /// </summary>
-        public static async Task GetDispensedInfo()
+        public static async Task GetDispensedInfoAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             AddCommand(MDBCommands.GetDispensedCoinsInfo);
@@ -1807,42 +1816,11 @@ namespace MDBLib
             }
         }
 
-
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        /// <summary>
-        /// Добавляет элемент в список команд для отправки по шине MDB
-        /// </summary>
-        /// <param name="cmd"></param>
-        /// <param name="dispense"></param>
-        private static void AddCommand(byte[] cmd, bool dispense = false)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-        {
-            MDBCommandsListSemaphore.Wait();
-            CommandList.Add(cmd);
-            MDBCommandsListSemaphore.Release();
-            if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: CommandList count: {0}", CommandList.Count)); else MDBInformationMessageReceived?.Invoke(CommandList.Count.ToString());
-        }
-
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        /// <summary>
-        /// Добавляет элементы в конец списка команд для отправки по шине MDB
-        /// </summary>
-        /// <param name="cmd"></param>
-        /// <param name="dispense"></param>
-        private static void AddCommand(byte[][] cmds, bool dispense = false)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-        {
-            MDBCommandsListSemaphore.Wait();
-            CommandList.AddRange(cmds.ToList());
-            MDBCommandsListSemaphore.Release();
-            if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: CommandList count: {0}", CommandList.Count)); else MDBInformationMessageReceived?.Invoke(CommandList.Count.ToString());
-        }
-
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Запрещаем прием монет
         /// </summary>
-        public static async Task DisableAcceptCoins()
+        public static async Task DisableAcceptCoinsAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             AddCommand(MDBCommands.DisableAcceptCoins);
@@ -1852,7 +1830,7 @@ namespace MDBLib
         /// <summary>
         /// Запрещаем прием купюр
         /// </summary>
-        public static async Task DisableAcceptBills()
+        public static async Task DisableAcceptBillsAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             AddCommand(MDBCommands.DisableAcceptBills);
@@ -1862,17 +1840,17 @@ namespace MDBLib
         /// <summary>
         /// разрешаем прием монет
         /// </summary>
-        public static async Task EnableAcceptCoins()
+        public static async Task EnableAcceptCoinsAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            AddCommand(MDBCommands.EnableAcceptCoins);
+            AddCommands(new byte[][] { MDBCommands.GetCoinChangerTubeStatus, MDBCommands.EnableAcceptCoins });
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Разрешаем выдачу монет
         /// </summary>
-        public static async Task EnableDispenseCoins()
+        public static async Task EnableDispenseCoinsAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             AddCommand(MDBCommands.EnableDispenseCoins);
@@ -1882,37 +1860,38 @@ namespace MDBLib
         /// <summary>
         /// разрешаем прием наличных
         /// </summary>
-        public static async Task EnableCashDevices()
+        public static async Task EnableCashDevicesAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            AddCommand(new byte[][] { MDBCommands.BillValidatorSetup, MDBCommands.CoinChangerSetup, MDBCommands.EnableAcceptCoins, MDBCommands.EnableAcceptBills });
+            await EnableAcceptCoinsAsync();
+            await EnableAcceptBillsAsync();
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// запрещаем прием наличных
         /// </summary>
-        public static async Task DisableCashDevices()
+        public static async Task DisableCashDevicesAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            AddCommand(new byte[][] { MDBCommands.DisableAcceptCoins, MDBCommands.DisableAcceptBills });
+            AddCommands(new byte[][] { MDBCommands.DisableAcceptCoins, MDBCommands.DisableAcceptBills });
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Разрешаем прием купюр
         /// </summary>
-        public static async Task EnableAcceptBills()
+        public static async Task EnableAcceptBillsAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            AddCommand(new byte[][] { MDBCommands.BillValidatorSetup, MDBCommands.EnableAcceptBills });
+            AddCommands(new byte[][] { MDBCommands.BillValidatorSetup, MDBCommands.EnableAcceptBills });
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Выполняет сброс монетоприемника
         /// </summary>
-        public static async Task ResetCoinChanger()
+        public static async Task ResetCoinChangerAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             AddCommand(MDBCommands.ResetCoinChanger);//Reset CoinChanger
@@ -1922,7 +1901,7 @@ namespace MDBLib
         /// <summary>
         /// Выполняет сброс купюроприемника
         /// </summary>
-        public static async Task ResetBillValidator()
+        public static async Task ResetBillValidatorAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             AddCommand(MDBCommands.ResetBillValidator);//Reset Bill BillValidator
@@ -1932,16 +1911,16 @@ namespace MDBLib
         /// <summary>
         /// Выполняет сброс купюро и монетоприемника
         /// </summary>
-        public static async Task ResetCashDevices()
+        public static async Task ResetCashDevicesAsync()
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            AddCommand(new byte[][] { MDBCommands.ResetBillValidator, MDBCommands.ResetCoinChanger });//Reset bill validator and coin changer
+            AddCommands(new byte[][] { MDBCommands.ResetBillValidator, MDBCommands.ResetCoinChanger });//Reset bill validator and coin changer
         }
 
         /// <summary>
         /// Запрашиваем состояние стекера купюроприемника
         /// </summary>
-        public static async Task GetBillValidatorStatus()
+        public static async Task GetBillValidatorStatusAsync()
         {
             AwaitBillValidatorStackerStatus = true;
             AddCommand(MDBCommands.GetBillValidatorStackerStatus); //Request Stacker Status
@@ -1957,7 +1936,7 @@ namespace MDBLib
         /// <summary>
         /// Запрашиваем состояние монетоприемника
         /// </summary>
-        public static async Task GetCoinChangerStatus()
+        public static async Task GetCoinChangerTubeStatusAsync()
         {
             AwaitCoinChangerTubeStatus = true;
             AddCommand(MDBCommands.GetCoinChangerTubeStatus); //Request CoinChanger Tube Status
@@ -1973,12 +1952,12 @@ namespace MDBLib
         /// <summary>
         /// Запрашиваем расширенную информацию
         /// </summary>
-        public static async Task GetCashDevicesIdentification()
+        public static async Task GetCashDevicesIdentificationAsync()
         {
             AwaitCoinChangerID = true;
             AwaitBillValidatorID = true;
             byte[][] tmpidcmds = new byte[2][]{ MDBCommands.RequestCoinChangerIdentification, (BillValidatorSetupData.BillValidatorFeatureLevel == 2) ? MDBCommands.RequestBillValidatorIdentification_Level2 : MDBCommands.RequestBillValidatorIdentification_Level1 };
-            AddCommand(tmpidcmds);
+            AddCommands(tmpidcmds);
             int RetryCount = 0;
             while ((AwaitBillValidatorID || AwaitCoinChangerID) && RetryCount < 21)//таймаут ожидания ответа
             {
@@ -1992,7 +1971,7 @@ namespace MDBLib
         /// <summary>
         /// Запрашиваем расширенную информацию о монетоприемнике
         /// </summary>
-        public static async Task GetCoinChangerIdentification()
+        public static async Task GetCoinChangerIdentificationAsync()
         {
             AwaitCoinChangerID = true;
             AddCommand(MDBCommands.RequestCoinChangerIdentification); //Request CoinChanger Expanded ID
@@ -2008,7 +1987,7 @@ namespace MDBLib
         /// <summary>
         /// Запрашиваем расширенную информацию о купюроприемнике
         /// </summary>
-        public static async Task GetBillValidatorIdentification()
+        public static async Task GetBillValidatorIdentificationAsync()
         {
             AwaitBillValidatorID = true;
             if (BillValidatorSetupData.BillValidatorFeatureLevel == 1) AddCommand(MDBCommands.RequestBillValidatorIdentification_Level1); else AddCommand(MDBCommands.RequestBillValidatorIdentification_Level2); //Request BillValidator Expanded ID
@@ -2020,6 +1999,54 @@ namespace MDBLib
             }
             AwaitBillValidatorID = false;
         }
+        #endregion
+
+        #region Internal methods
+        /// <summary>
+        /// Преобразует массив байт BCD в целое число
+        /// </summary>
+        /// <param name="BCDBytes"></param>
+        /// <returns></returns>
+        private static int BCDByteToInt(byte[] BCDBytes)
+        {
+            int res = 0;
+            for (int i = 0; i < BCDBytes.Length; i++)
+            {
+                res *= 100;
+                res += (10 * (BCDBytes[i] >> 4));
+                res += (BCDBytes[i] & 0xf);
+            }
+            return res;
+        }
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        /// <summary>
+        /// Добавляет элемент в список команд для отправки по шине MDB
+        /// </summary>
+        /// <param name="cmd">Команда MDB, включая CHK byte</param>
+        private static void AddCommand(byte[] MDBCommand)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        {
+            MDBCommandsListSemaphore.Wait();
+            CommandList.Add(MDBCommand);
+            MDBCommandsListSemaphore.Release();
+            if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: CommandList count: {0}", CommandList.Count)); else MDBInformationMessageReceived?.Invoke(CommandList.Count.ToString());
+        }
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        /// <summary>
+        /// Добавляет элементы в конец списка команд для отправки по шине MDB
+        /// </summary>
+        /// <param name="cmd">массив команд MDB</param>
+        private static void AddCommands(byte[][] cmds)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        {
+            MDBCommandsListSemaphore.Wait();
+            CommandList.AddRange(cmds.ToList());
+            MDBCommandsListSemaphore.Release();
+            if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: CommandList count: {0}", CommandList.Count)); else MDBInformationMessageReceived?.Invoke(CommandList.Count.ToString());
+        }
+        #endregion
 
         /// <summary>
         /// Структура команд MDB
@@ -2045,6 +2072,7 @@ namespace MDBLib
             public static byte[] RequestBillValidatorIdentification_Level1 = new byte[] { 0x37, 0x00, 0x37 };
             public static byte[] EnableBillValidatorFeatures_Level2 = new byte[] { 0x37, 0x01, 0x38 };
             public static byte[] RequestBillValidatorIdentification_Level2 = new byte[] { 0x37, 0x02, 0x39 };
+
             /// <summary>
             /// Команда выдачи сдачи
             /// </summary>
