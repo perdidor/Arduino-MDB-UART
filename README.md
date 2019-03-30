@@ -4,7 +4,7 @@
 Atmega1284 PLC acts as man-in-the-middle between MDB peripheral and master PC (VMC) serial port. It off-loads MDB bus polling and converting data between 9-bit MDB and 8-bit RS232 tasks from VMC, effectively delivers data by using hardware interrupts and provides conformity for required timing restrictions (see MDB datasheet for details).
 Command received from master PC (VMC) via serial port (RXD1 on AtMega1284), then sent to MDB serial port (TXD0) with 9-bit format.
 Answers from peripheral devices received via RXD0 converted to string representation of hex bytes sent to Master PC (TXD1).
-First byte of answer sent to VMC is the address of peripheral device so VMC "knows" which device responds. Last answer byte followed by EOL. **AGAIN: Master PC writes command as bytes, including CHK byte (see MDB datasheet included), but receives answers as text with EOL. It's important. "MDB-RS232-Test" folder contains test software sources (C#).**
+First byte of answer sent to VMC is the address of peripheral device so VMC "knows" which device responds. Last answer byte followed by EOL. **AGAIN: Master PC writes command as bytes, including CHK byte (see MDB datasheet included), but receives answers as text with CRLF at the end. It's important. "MDB-RS232-Test" folder contains test software sources (C#).**
 
 You can use any other Atmega PLC with this code, having 2 hardware UARTs on board. AtMEGA1284P-PU recommended for beginners as it has DIP (through-hole) design, which is more friendly for assembling and soldering.
 
@@ -48,7 +48,7 @@ Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
 # Конвертер MDB-UART на базе Arduino
 Микроконтроллер Atmega1284 или любой другой, имеющий два аппаратных UART на борту, может использоваться как конвертер между обычным компьютером или другим устройством с обычным RS-232 портом, и периферийными устройствами, работающими по протоколу MDB. Он разгружает управляющий компьютер от задач, связанных с опросом шины MDB и конвертированием между 9 и 8 битным форматом, обеспечивает соответствие временным ограничениям протокола и эффективно использует аппаратные прерывания.
 Обмен данными с управляющих компьютером осуществляется через UART1, с шиной MDB через UART0.
-Команды от управляющего компьютера приходят в виде набора байт. Ответы от MDB устройств конвертируются в строковое представление HEX байт, разделитель - пробел, в конце ответа EOL. Первый HEX байт ответа равен адресу устройства, это единственное изменение, которое вносит адаптер в поток данных, это необходимо для определения отвечающего устройства. Задача интерпретации полученных данных должна выполняться на управляющем компьютере (см. даташит MDB 4.2). В каталоге "MDB-RS232-Test" лежат исходники на c# примера программы для работы с устройством.
+Команды от управляющего компьютера приходят в виде набора байт. Ответы от MDB устройств конвертируются в строковое представление HEX байт, разделитель - пробел, в конце ответа CRLF. Первый HEX байт ответа равен адресу устройства, это единственное изменение, которое вносит адаптер в поток данных, это необходимо для определения отвечающего устройства. Задача интерпретации полученных данных должна выполняться на управляющем компьютере (см. даташит MDB 4.2). В каталоге "MDB-RS232-Test" лежат исходники на c# примера программы для работы с устройством.
 
 Демонстрационное видео работы прототипа на макетной плате, управляем купюроприемником ICT A7\V7 и монетоприемником Currenza C2 Blue (см. описание под видео):
 
