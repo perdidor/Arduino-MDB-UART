@@ -681,8 +681,8 @@ namespace MDBLib
             {
                 await Task.Delay(100);
             }
-            DispenseInProgress = false;
             AwaitDispenseResult = true;
+            DispenseInProgress = false;
             if (DebugEnabled) MDBDebug?.Invoke("CoinChanger Payout Complete"); else MDBCoinChangerPayoutComplete?.Invoke();
         }
 
@@ -694,7 +694,7 @@ namespace MDBLib
         {
             CoinChangerReadyStatus = false;
             if (DebugEnabled) MDBDebug?.Invoke("CoinChanger Busy"); else MDBCoinChangerBusy?.Invoke();
-            while (DispenseTimeout > DateTime.Now)
+            while (CoinChangerBusyTimeout > DateTime.Now)
             {
                 await Task.Delay(100);
             }
@@ -1127,7 +1127,6 @@ namespace MDBLib
         {
             try
             { 
-                AwaitDispenseResult = false;
                 List<CoinsRecord> tmpcr = new List<CoinsRecord> { };
                 for (int i = 1; i < ChangeData.Length - 1; i++)
                 {
@@ -1137,6 +1136,7 @@ namespace MDBLib
                     }
                 }
                 if (DebugEnabled) MDBDebug?.Invoke(string.Format("DEBUG: dispensed sum value={0}", tmpcr.Sum(x => x.CoinValue))); else MDBChangeDispensed?.Invoke(tmpcr);
+                AwaitDispenseResult = false;
 #pragma warning disable CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
                 GetCoinChangerTubeStatusAsync();
 #pragma warning restore CS4014 // Так как этот вызов не ожидается, выполнение существующего метода продолжается до завершения вызова
@@ -1920,7 +1920,7 @@ namespace MDBLib
         /// <summary>
         /// Запрашиваем состояние стекера купюроприемника
         /// </summary>
-        public static async Task GetBillValidatorStatusAsync()
+        public static async Task GetBillValidatorStackerStatusAsync()
         {
             AwaitBillValidatorStackerStatus = true;
             AddCommand(MDBCommands.GetBillValidatorStackerStatus); //Request Stacker Status
