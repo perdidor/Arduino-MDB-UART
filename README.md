@@ -1,5 +1,7 @@
 ﻿**Русская версия описания находится ниже**
  
+ **[Project moved to new web-site \ Проект переехал на новый домен](https://www.mdbstuff.com)**
+ 
 **31.03.2019: [End of public work notice / Уведомление о прекращении работы над свободно доступным проектом (English)](https://github.com/perdidor/Arduino-MDB-UART/issues/10)**
 
 # Arduino-MDB-UART
