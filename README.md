@@ -43,6 +43,11 @@ PCB design included is one-sided FR4 70x80mm (render)
 
 <img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB/PCB_layout4.JPG" width="360">
 
+
+PCB rev2a complete package included (double-side, RTM)
+
+<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB/PCB_rev2a.JPG" width="400">
+
 # Credits
 Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
 
