@@ -41,7 +41,7 @@ Assembled enclosure (render, more in Enclosure folder)
 PCB design included is one-sided FR4 70x80mm (render)
 Внешний вид печатной платы 70х80мм (рендер)
 
-<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB/PCB_layout4.JPG" width="360">
+<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB/PCB_oneside_updated.JPG" width="360">
 
 
 PCB rev2a complete package included (double-side, RTM)
