@@ -1,4 +1,4 @@
-﻿**Русская версия описания находится ниже**
+**Русская версия описания находится ниже**
  
  **[Project moved to new web-site \ Проект переехал на новый домен](https://www.mdbstuff.com)**
  
@@ -12,6 +12,7 @@ First byte of answer sent to VMC is the address of peripheral device so VMC "kno
 
 You can use any other Atmega PLC with this code, having 2 hardware UARTs on board. AtMEGA1284P-PU recommended for beginners as it has DIP (through-hole) design, which is more friendly for assembling and soldering.
 
+Processing MDB messages requires deep understanding of MDB protocol. Advanced firmware with human-readable VMC output available commercially (see new site link above).
 
 Breadboard live demo with ICT A7\V7 bill validator and Currenza C2 Blue coin changer (see description below video):
 
@@ -58,6 +59,8 @@ Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
 Микроконтроллер Atmega1284 или любой другой, имеющий два аппаратных UART на борту, может использоваться как конвертер между обычным компьютером или другим устройством с обычным RS-232 портом, и периферийными устройствами, работающими по протоколу MDB. Он разгружает управляющий компьютер от задач, связанных с опросом шины MDB и конвертированием между 9 и 8 битным форматом, обеспечивает соответствие временным ограничениям протокола и эффективно использует аппаратные прерывания.
 Обмен данными с управляющих компьютером осуществляется через UART1, с шиной MDB через UART0.
 Команды от управляющего компьютера приходят в виде набора байт. Ответы от MDB устройств конвертируются в строковое представление HEX байт, разделитель - пробел, в конце ответа CRLF. Первый HEX байт ответа равен адресу устройства, это единственное изменение, которое вносит адаптер в поток данных, это необходимо для определения отвечающего устройства. Задача интерпретации полученных данных должна выполняться на управляющем компьютере (см. даташит MDB 4.2). В каталоге "MDB-RS232-Test" лежат исходники на c# примера программы для работы с устройством.
+
+Обработка сообщений MDB требует глубокого понимания протокола MDB. Продвинутая прошивка с удобочитаемым выводом VMC доступна в продаже (см. ссылку на новый сайт в наале файла).
 
 Демонстрационное видео работы прототипа на макетной плате, управляем купюроприемником ICT A7\V7 и монетоприемником Currenza C2 Blue (см. описание под видео):
 
