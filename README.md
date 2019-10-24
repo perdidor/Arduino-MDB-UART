@@ -1,29 +1,15 @@
-**Русская версия описания находится ниже**
- 
- **[Project moved to new web-site \ Проект переехал на новый домен](https://www.mdbstuff.com)**
- 
-**31.03.2019: [End of public work notice / Уведомление о прекращении работы над свободно доступным проектом (English)](https://github.com/perdidor/Arduino-MDB-UART/issues/10)**
+﻿**Русская версия описания находится ниже**
 
 # Arduino-MDB-UART
 Atmega1284 PLC acts as man-in-the-middle between MDB peripheral and master PC (VMC) serial port. It off-loads MDB bus polling and converting data between 9-bit MDB and 8-bit RS232 tasks from VMC, effectively delivers data by using hardware interrupts and provides conformity for required timing restrictions (see MDB datasheet for details).
 Command received from master PC (VMC) via serial port (RXD1 on AtMega1284), then sent to MDB serial port (TXD0) with 9-bit format.
-Answers from peripheral devices received via RXD0 converted to string representation of hex bytes sent to Master PC (TXD1).
-First byte of answer sent to VMC is the address of peripheral device so VMC "knows" which device responds. Last answer byte followed by EOL. **AGAIN: Master PC writes command as bytes, including CHK byte (see MDB datasheet included), but receives answers as text with CRLF at the end. It's important. "MDB-RS232-Test" folder contains test software sources (C#).**
 
-You can use any other Atmega PLC with this code, having 2 hardware UARTs on board. AtMEGA1284P-PU recommended for beginners as it has DIP (through-hole) design, which is more friendly for assembling and soldering.
-
-Processing MDB messages requires deep understanding of MDB protocol. Advanced firmware with human-readable VMC output available commercially (see new site link above).
-
-Breadboard live demo with ICT A7\V7 bill validator and Currenza C2 Blue coin changer (see description below video):
-
-[![Video](http://img.youtube.com/vi/YV8bc2hhqS0/0.jpg)](http://www.youtube.com/watch?v=YV8bc2hhqS0)
+Compiled_firmware folder contains ready-to-burn firmware images in hex format, for both "Through-hole ATmega1284" and "new rev2a" versions, see instructions inside.
+Docs folder contains manuals for operating device with firmware included.
 
 # HOW CAN I USE IT?
 It's for connecting PC or other computer with "usual" 8-bit COM port ("Master", "VMC") to MDB devices (slaves such as coin charger, bill validator etc...), to control these devices and receive messages from them. It's NOT for emulating coin charger or something like it (for these purposes you'll need another adapter).
-
-# History
-Once I needed to manage the MDB devices from a PC. Googling brought to Aliexpress, where a lot of adapters are sold at a price of $ 50 or more like this: http://www.waferstar.com/en/MDB-PC.html or similar.
-The cost of the finished device will not exceed $ 20. I just want to punish these hucksters for irrepressible greed.
+See user manual for actual supported device list.
 
 # Get Started
 It will be simple to repeat, all components are available and cheap (see parts_list.txt). "Sprint Layout 6.0" software required to view and edit PCB design file "mdb-rs232.lay6".
@@ -32,7 +18,7 @@ It will be simple to repeat, all components are available and cheap (see parts_l
 - LED mounting height 14mm;
 - DO NOT use device without radiator.
 
-Repository contains enclosure files for 3D printing.
+Repository contains enclosure files for 3D printing (for single-side board adapter only).
 
 Assembled enclosure (render, more in Enclosure folder)
 Собранный корпус (рендер, остальные в том же каталоге)
@@ -58,20 +44,13 @@ Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
 # Конвертер MDB-UART на базе Arduino
 Микроконтроллер Atmega1284 или любой другой, имеющий два аппаратных UART на борту, может использоваться как конвертер между обычным компьютером или другим устройством с обычным RS-232 портом, и периферийными устройствами, работающими по протоколу MDB. Он разгружает управляющий компьютер от задач, связанных с опросом шины MDB и конвертированием между 9 и 8 битным форматом, обеспечивает соответствие временным ограничениям протокола и эффективно использует аппаратные прерывания.
 Обмен данными с управляющих компьютером осуществляется через UART1, с шиной MDB через UART0.
-Команды от управляющего компьютера приходят в виде набора байт. Ответы от MDB устройств конвертируются в строковое представление HEX байт, разделитель - пробел, в конце ответа CRLF. Первый HEX байт ответа равен адресу устройства, это единственное изменение, которое вносит адаптер в поток данных, это необходимо для определения отвечающего устройства. Задача интерпретации полученных данных должна выполняться на управляющем компьютере (см. даташит MDB 4.2). В каталоге "MDB-RS232-Test" лежат исходники на c# примера программы для работы с устройством.
 
-Обработка сообщений MDB требует глубокого понимания протокола MDB. Продвинутая прошивка с удобочитаемым выводом VMC доступна в продаже (см. ссылку на новый сайт в начале файла).
-
-Демонстрационное видео работы прототипа на макетной плате, управляем купюроприемником ICT A7\V7 и монетоприемником Currenza C2 Blue (см. описание под видео):
-
-[![Video](http://img.youtube.com/vi/YV8bc2hhqS0/0.jpg)](http://www.youtube.com/watch?v=YV8bc2hhqS0)
+Каталог Compiled_firmware содержит готовые к прошивке образы в офрмате Intel hex, для обеих аппаратных версий адаптера (на базе ATmega1284 и ATmega644PA).
+Каталог Docs содержит инструкции по работе с прошитым устройством.
 
 # Зачем нужен этот девайс?
-Чтобы управлять устройствами приема наличных и исполнительными устройствами, входящими в состав киосков самообслуживания (торговых автоматов), по протоколу MDB. Использовано в проекте https://github.com/perdidor/RaspberryVending
-Девайс НЕ ПРЕДНАЗНАЧЕН для эмуляции вышеперечисленных устройств, для этого нужен другой адаптер.
-
-# История создания
-При проектировании торгового автомата понадобилось управлять купюроприемником. На Алиэкспресс цены от 50 баксов и выше (например, вот у этих тупорылых барыг, которые испугались даже принимать траффик отсюда гыыы дебилы блять https://shop.mst-company.ru), денег стало жалко отдавать барыгам и пришлось сделать свое устройство.
+Чтобы управлять устройствами приема наличных и исполнительными устройствами, входящими в состав киосков самообслуживания (торговых автоматов), по протоколу MDB. Девайс НЕ ПРЕДНАЗНАЧЕН для эмуляции вышеперечисленных устройств, для этого нужен другой адаптер.
+См. инструкцию для уточнения актуального списка поддерживаемых устройств.
 
 # Приступаем
 Это не очень трудно, компоненты дешевы и доступны (список компонентов в файле parts_list.txt, магазин запчастей с доставкой http://www.chipdip.ru). Обычно получается дешевле 20 долларов (без корпуса).
@@ -81,6 +60,8 @@ Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
 - Высота установки светодиодов 14мм;
 - Без радиатора на регуляторе напряжения использовать не рекомендуется.
 
-Репозиторий содержит файлы для заказа или самостоятельной печати корпуса устройства на 3D принтере (каталог "Enclosure"). 
+Для двухстороннего варианта платы (rev2a) есть архив с полным комплектом технологической документации, для заказа изготовления в стороннем сервисе.
 
-Рендеры корпуса и печатной платы в английской версии выше.
+Репозиторий содержит файлы для заказа или самостоятельной печати корпуса устройства (для варианта с односторонней платой) на 3D принтере (каталог "Enclosure").
+
+Рендеры корпуса и печатных плат в английской версии выше.
