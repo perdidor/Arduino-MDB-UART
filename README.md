@@ -1,7 +1,7 @@
 ﻿**Русская версия описания находится ниже**
 
 # Arduino-MDB-UART
-Atmega1284 PLC acts as man-in-the-middle between MDB peripheral and master PC (VMC) serial port. It off-loads MDB bus polling and converting data between 9-bit MDB and 8-bit RS232 tasks from VMC, effectively delivers data by using hardware interrupts and provides conformity for required timing restrictions (see MDB datasheet for details).
+Atmega1284 PLC (or Arduino Mega, or any other ATmega chip with 2 UARTs) acts as man-in-the-middle between MDB peripheral and master PC (VMC) serial port. It off-loads MDB bus polling and converting data between 9-bit MDB and 8-bit RS232 tasks from VMC, effectively delivers data by using hardware interrupts and provides conformity for required timing restrictions (see MDB datasheet for details).
 Command received from master PC (VMC) via serial port (RXD1 on AtMega1284), then sent to MDB serial port (TXD0) with 9-bit format.
 
 Compiled_firmware folder contains ready-to-burn firmware images in hex format, for both "Through-hole ATmega1284" and "new rev2a" versions, see instructions inside.
@@ -42,7 +42,7 @@ Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
 **========================End of English version==========================**
 
 # Конвертер MDB-UART на базе Arduino
-Микроконтроллер Atmega1284 или любой другой, имеющий два аппаратных UART на борту, может использоваться как конвертер между обычным компьютером или другим устройством с обычным RS-232 портом, и периферийными устройствами, работающими по протоколу MDB. Он разгружает управляющий компьютер от задач, связанных с опросом шины MDB и конвертированием между 9 и 8 битным форматом, обеспечивает соответствие временным ограничениям протокола и эффективно использует аппаратные прерывания.
+Микроконтроллер Atmega1284 или любой другой (например плата Arduino Mega на основе ATmega2560), имеющий два аппаратных UART на борту, может использоваться как конвертер между обычным компьютером или другим устройством с обычным RS-232 портом, и периферийными устройствами, работающими по протоколу MDB. Он разгружает управляющий компьютер от задач, связанных с опросом шины MDB и конвертированием между 9 и 8 битным форматом, обеспечивает соответствие временным ограничениям протокола и эффективно использует аппаратные прерывания.
 Обмен данными с управляющих компьютером осуществляется через UART1, с шиной MDB через UART0.
 
 Каталог Compiled_firmware содержит готовые к прошивке образы в офрмате Intel hex, для обеих аппаратных версий адаптера (на базе ATmega1284 и ATmega644PA).
