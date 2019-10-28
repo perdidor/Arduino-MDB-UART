@@ -1,5 +1,5 @@
-You have to implement electrical schematic from PCB folder to use rhis firmware with Arduino Mega (ATmega2560 16MHz chip). Remove MAX232 and connect UART0 instead.
+You have to implement electrical schematic from PCB folder to use rhis firmware with Arduino Mega (ATmega2560 16MHz chip).
 UART1 is for VMC output.
 
-Необходимо соединить Arduino Mega (ATmega2560 16MHz chip) по схеме из каталога PCB портом UART0 вместо микросхемы MAX232 (микросхему удалить вместе с обвязкой из кондеров).
+Необходимо соединить Arduino Mega (ATmega2560 16MHz chip) по схеме из каталога PCB.
 UART1 - для связи с управляющим компьютером (VMC).
