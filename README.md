@@ -20,6 +20,10 @@ It will be simple to repeat, all components are available and cheap (see parts_l
 
 Repository contains enclosure files for 3D printing (for single-side board adapter only).
 
+Live demo with ICT A7\V7 bill validator and Currenza C2 Blue coin changer:
+
+[![Video](http://img.youtube.com/vi/Z58a7f0YK28/0.jpg)](http://www.youtube.com/watch?v=Z58a7f0YK28)
+
 Assembled enclosure (render, more in Enclosure folder)
 Собранный корпус (рендер, остальные в том же каталоге)
 
