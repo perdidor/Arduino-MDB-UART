@@ -1,7 +1,5 @@
 ﻿**Русская версия описания находится ниже**
 
-Hello, guys. Can you please give me some feedback with success implementations, implemented device photos etc. to gfr20141201@gmail.com Thanks a lot in advance!
-
 # Arduino-MDB-UART
 Atmega1284 PLC (or Arduino Mega, or any other ATmega chip with 2 UARTs) acts as man-in-the-middle between MDB peripheral and master PC (VMC) serial port. It off-loads MDB bus polling and converting data between 9-bit MDB and 8-bit RS232 tasks from VMC, effectively delivers data by using hardware interrupts and provides conformity for required timing restrictions (see MDB datasheet for details).
 Command received from master PC (VMC) via serial port (RXD1 on AtMega1284), then sent to MDB serial port (TXD0) with 9-bit format.
@@ -37,9 +35,13 @@ PCB design included is one-sided FR4 70x80mm (render)
 <img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB/PCB_oneside_updated.jpg" width="360">
 
 
-PCB rev2a complete package included (double-side, RTM)
+PCB rev2a complete package included (render, double-side, RTM)
 
 <img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB/PCB_rev2a.JPG" width="400">
+
+rev2a finished device photo:
+
+<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/PCB/device.png" width="400">
 
 # Credits
 Inspired by MDB-Sniffer project https://github.com/MarginallyClever/MDB-Sniffer
