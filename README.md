@@ -20,6 +20,39 @@ It will be simple to repeat, all components are available and cheap (see parts_l
 
 Repository contains enclosure files for 3D printing (for single-side board adapter only).
 
+# Burning firmware into adapter's MCU:
+
+This section was added after I sent out dozens of similar responses to requests for assistance via email. It looks like a lot of new people have come to hardware development due to the fucking covid pandemic. OK here's a quick guide on how to start the device after assembly.
+
+So, we need to do three operations: flash the hex file of the main program, flash the eep file with the adapter settings, and set the correct fuse values. The firmware is compiled with the expectation that the chip will be clocked from an external crystal with a frequency of 16 MHz, so if the fuses are incorrectly installed, the chip will not be able to work at best due to incorrect timing of the time intervals, at worst the chip will be impossible to flash using a sequential method for the same reason.
+
+**Prerequisities**:
+
+For the firmware upload, you will need:
+- avrdodeprog 3.3 software - https://yourdevice.net/downloads/avrdudeprog33.rar
+
+- UsbASP programmer. The market is full of buggy fakes, order 2-3 at once, they are quite cheap.
+
+For the programmer to work, you need a driver (not for all OS), you can download it on the device developer's website https://www.fischl.de/usbasp/
+
+1. Connect the adapter and the programmer with 6 wires. Look for the pinout of the ISCP10 connectors in Google, for the adapter it is located in the component designation file (for the double-sided version) or on the board.
+
+2. Set the correct fuse values, for example, for Atmega644P they will be as follows:
+
+<img src = "https://github.com/perdidor/Arduino-MDB-UART/blob/master/Compiled_firmware/atmega644p_16MHzExternal_fuses.png">
+
+Find the required values for atmega1284 yourself in the datasheet or numerous calculators on the Internet.
+
+***You can also set fuse values using the Arduino IDE: select the desired chip, frequency and clock source, programmer and / or port, and click "Burn Bootloader" in the same menu.***
+
+3. Select the desired hex firmware file and eep settings file, and flash them in the same order (Program button).
+
+**Check the result**:
+
+As a result, after a successful firmware and the absence of assembly and manufacturing defects, you will have a working device. It will look like this: in the absence of a connected peripheral device (coin acceptor, bill acceptor), the MDB Tx indicator blinks, when power is applied to the VMC UART in 9600-8-N-1 mode, the firmware version will be displayed and that's it. When connecting supported devices (see the manual), the MDB Rx indicator should blink - this is the answer from them to the adapter, and information about the connected devices will appear in the VMC UART pin.
+
+If the behavior differs from the one described - either it is incorrectly assembled or it is incorrectly programmed, nobody's advice will help here, read again and do everything carefully, checking each step.
+
 Live demo with ICT A7\V7 bill validator and Currenza C2 Blue coin changer:
 
 [![Video](http://img.youtube.com/vi/Z58a7f0YK28/0.jpg)](http://www.youtube.com/watch?v=Z58a7f0YK28)
