@@ -35,7 +35,7 @@ For the firmware upload, you will need:
 
 For the programmer to work, you need a driver (not for all OS), you can download it on the device developer's website https://www.fischl.de/usbasp/
 
-1. Connect the adapter and the programmer with 6 wires. Look for the pinout of the ISCP10 connectors in Google, for the adapter it is located in the component designation file (for the double-sided version) or on the board.
+1. Connect the adapter and the programmer with 6 wires. Look for the pinout of the ICSP10 connectors in Google, for the adapter it is located in the component designation file (for the double-sided version) or on the board.
 
 2. Set the correct fuse values, for example, for Atmega644P they will be as follows:
 
