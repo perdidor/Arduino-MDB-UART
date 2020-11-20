@@ -8,7 +8,7 @@ Compiled_firmware folder contains ready-to-burn firmware images in hex format, f
 Docs folder contains manuals for operating device with firmware included.
 
 # HOW CAN I USE IT?
-It's for connecting PC or other computer with "usual" 8-bit COM port ("Master", "VMC") to MDB devices (slaves such as coin charger, bill validator etc...), to control these devices and receive messages from them. It's NOT for emulating coin charger or something like it (for these purposes you'll need another adapter).
+It's for connecting PC or other computer with "usual" 8-bit COM port ("Master", "VMC") to MDB devices (slaves such as coin charger, bill validator etc...), to control these devices and receive messages from them. It's NOT for emulating coin charger or something like it (for these purposes you'll need another adapter). It's NOT for MDB sniffing, schematics will differ too, due MDB lines are optoisolated current loops.
 See user manual for actual supported device list.
 
 # Get Started
@@ -24,7 +24,7 @@ Repository contains enclosure files for 3D printing (for single-side board adapt
 
 This section was added after I sent out dozens of similar responses to requests for assistance via email. It looks like a lot of new people have come to hardware development due to the fucking covid pandemic. OK here's a quick guide on how to start the device after assembly.
 
-So, we need to do three operations: flash the hex file of the main program, flash the eep file with the adapter settings, and set the correct fuse values. The firmware is compiled with the expectation that the chip will be clocked from an external crystal with a frequency of 16 MHz, so if the fuses are incorrectly installed, the chip will not be able to work at best due to incorrect timing of the time intervals, at worst the chip will be impossible to flash using a sequential method for the same reason.
+So, we need to do three operations: flash the hex file of the main program, flash the eep file with the adapter settings, and set the correct fuses values. The firmware is compiled with the expectation that the chip clocked from an external crystal at 16 MHz, so if the fuses values are incorrect, the chip will not be able to work at best due to incorrect timing, at worst the chip will be impossible to flash using any serial method for the same reason.
 
 **Prerequisities**:
 
@@ -45,11 +45,11 @@ Find the required values for atmega1284 yourself in the datasheet or numerous ca
 
 ***You can also set fuse values using the Arduino IDE: select the desired chip, frequency and clock source, programmer and / or port, and click "Burn Bootloader" in the same menu.***
 
-3. Select the desired hex firmware file and eep settings file, and flash them in the same order (Program button).
+3. Select the desired hex firmware file and eep settings file, and flash them in the same order (Programm button).
 
 **Check the result**:
 
-As a result, after a successful firmware and the absence of assembly and manufacturing defects, you will have a working device. It will look like this: in the absence of a connected peripheral device (coin acceptor, bill acceptor), the MDB Tx indicator blinks, when power is applied to the VMC UART in 9600-8-N-1 mode, the firmware version will be displayed and that's it. When connecting supported devices (see the manual), the MDB Rx indicator should blink - this is the answer from them to the adapter, and information about the connected devices will appear in the VMC UART pin.
+As a result, after a successful firmware upload and the absence of assembly and manufacturing defects, you will have a working device. It will look like this: in the absence of a connected peripheral device (coin acceptor, bill acceptor), the MDB Tx indicator blinks, when power is applied, and the VMC UART in 9600-8-N-1 mode outputs the firmware version and that's it. When connecting supported devices (see the manual), the MDB Rx indicator should blink - this is the answers from them to the adapter, and information about the connected devices will appear in the VMC UART output.
 
 If the behavior differs from the one described - either it is incorrectly assembled or it is incorrectly programmed, nobody's advice will help here, read again and do everything carefully, checking each step.
 
