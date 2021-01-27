@@ -21,7 +21,7 @@ The MDB protocol standard stipulates that all settings of the MDB standard bill 
 
 All these data are transferred to the control device of the vending machine when its operation is initialized, the real denominations of the bills are determined by the VMC independently in this way (a fragment of the real VMC firmware):<br/><br/>
 **double billvalue = BillScalingFactor * (BillTypeCredit / pow (10, DecimalPlaces));<br/><br/>**
-Theoretically, you can set these values ​​in this way and emulate a bill acceptor (coin acceptor) so that from the point of view of VMC it accepts bills (coins) of any given denomination (not only officially issued), for example, coin with value $37.39 or bill with credit value $20.75, etc. Usually such devices support up to 16 denominations, but if we have more products and we are able to determine the required purchase amount, we can reconfigure the emulator on the fly and inform VMC about rebooting the cash acceptor, after which VMC, according to the MDB standard, will re-request information on configuration and settings, and will receive already new denominations of accepted coins / notes.<br/>
+Theoretically, you can set these values in this way and emulate a bill acceptor (coin acceptor) so that from the point of view of VMC it accepts bills (coins) of any given denomination (not only officially issued), for example, coin with value $37.39 or bill with credit value $20.75, etc. Usually such devices support up to 16 denominations, but if we have more products and we are able to determine the required purchase amount, we can reconfigure the emulator on the fly and inform VMC about rebooting the cash acceptor, after which VMC, according to the MDB standard, will re-request information on configuration and settings, and will receive already new denominations of accepted coins / notes.<br/>
 Thus, in fact, a bill acceptor / coin acceptor will be located on the MDB bus, informing the control device about the transfer of an arbitrary amount by an external control signal (for example, a request via the Internet) or another (arbitrary) algorithm.<br/>
 Benefits:
 1. Multicurrency
@@ -56,10 +56,11 @@ Current development status: in progress (as per publish date).
 - количество знаков в денежных суммах после десятичной запятой;
 - коэффициент масштабирования номиналов купюр;
 - номиналы поддерживаемых купюр (с учетом коэффициента масштабирования)
+
 Все эти данные передаются в управляющее устройство торгового автомата при инициализации его работы, реальные номиналы купюр определяются VMC самостоятельно таким образом (фрагмент реальной прошивки VMC):<br/><br/>
 **double billvalue = BillScalingFactor * (BillTypeCredit/ pow(10, DecimalPlaces));<br/><br/>**
 Теоретически, можно таким образом задать эти значения и эмулировать купюроприемник (монетоприемник), чтобы с точки зрения VMC он принимал купюры (монеты) любого заданного номинала (не только официально выпускаемых), например, номиналом $37.39, $20.75 и т.д. Обычно подобные устройства поддерживают до 16 номиналов, но если у нас больше товаров и мы имеем возможность определить необходимую сумму покупки, мы можем переконфигурировать эмулятор «на лету» и сообщить VMC о перезагрузке устройства приема наличных, после этого VMC, согласно стандарту MDB, заново запросит информацию о конфигурации и настройках, и получит уже новые номиналы принимаемых монет/купюр.<br/>
-Таким образом, фактически на шине MDB будет находится купюроприемник/монетоприемник, сообщающий управляющему устройству о зачислении произвольной суммы по внешнему управляющему сигналу (например, запрос через Интернет) или другому (произвольному) алгоритму.
+Таким образом, фактически на шине MDB будет находится купюроприемник/монетоприемник, сообщающий управляющему устройству о зачислении произвольной суммы по внешнему управляющему сигналу (например, запрос через Интернет) или другому (произвольному) алгоритму.<br/>
 Преимущества:
 1.	Мультивалютность
 2.	Возможность переконфигурирования «на лету» на любую валюту и номинал
