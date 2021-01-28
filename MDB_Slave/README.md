@@ -5,7 +5,9 @@ The MDB standard provides for the presence of up to 2 cashless payment devices (
 Advantages of using MDB Cashless device:
 1. Ability to accept the purchase amount in one payment
 2. No need to dispense change (no bill / coin dispensers needed)
+
 Disadvantages:
+
 1. The exchange of data between VMC and MDB Cashless Device, described in protocol version 4.2, is much more difficult than with any other payment acceptance device, due to the need to interact with external systems to make a decision on whether a payment is credited / rejected. This circumstance leads to the complication of development and the rise in the cost of the final device.
 2. Not all vending machines have MDB Cashless support at the VMC level; upgrading such vending machines using such an emulator is impossible without reworking the control device. As a rule, these vending machines work only with cash and support MDB bill and coin acceptors.
 
@@ -43,7 +45,9 @@ Current development status: in progress (as per publish date).
 Достоинства использования устройства MDB Cashless:
 1.	Возможность приема суммы покупки одним платежом
 2.	Нет необходимости выдавать сдачу (не нужны устройства выдачи купюр/монет)
+
 Недостатки:
+
 1.	Обмен данными между VMC и MDB Cashless Device, описанный в протоколе версии 4.2, значительно сложнее, чем с любым другим устройством приема платежей, из-за необходимости взаимодействия с внешними системами для принятия решения о зачислении/отклонении платежа. Данное обстоятельство ведет к усложнению разработки и удорожанию конечного устройства.
 2.	Не все торговые автоматы имеют поддержку MDB Cashless на уровне VMC, модернизация таких автоматов с помощью подобного эмулятора невозможна без переделки управляющего устройства. Как правило, такие торговые автоматы работают лишь с наличными денежными средствами и поддерживают купюро- и монетоприемники стандарта MDB.
 
