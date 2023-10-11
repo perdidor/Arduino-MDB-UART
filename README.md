@@ -1,5 +1,9 @@
 ﻿**Русская версия описания находится ниже**
 
+# UPDATE 11 Oct 2023: source public release
+
+<div align="center">You can donate further development via BTC network. Thanks for your help. <p>bc1qtgvv29ldza7wfa3atzeufkejwdjc5ekk5a5enr</p></div>
+
 # Arduino-MDB-UART
 Atmega1284 PLC (or Arduino Mega, or any other ATmega chip with 2 UARTs) acts as man-in-the-middle between MDB peripheral and master PC (VMC) serial port. It off-loads MDB bus polling and converting data between 9-bit MDB and 8-bit RS232 tasks from VMC, effectively delivers data by using hardware interrupts and provides conformity for required timing restrictions (see MDB datasheet for details).
 Command received from master PC (VMC) via serial port (RXD1 on AtMega1284), then sent to MDB serial port (TXD0) with 9-bit format.
