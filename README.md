@@ -35,7 +35,11 @@ So, we need to do three operations: flash the hex file of the main program, flas
 For the firmware upload, you will need:
 - avrdudeprog 3.3 software - https://yourdevice.net/downloads/avrdudeprog33.rar
 
-- UsbASP programmer. The market is full of buggy fakes, order 2-3 at once, they are quite cheap.
+- UsbASP programmer. The market is full of buggy fakes, order 2-3 at once, they are quite cheap*.
+
+*imho, only 2 will be enough, when you're not as extremely dumb as dude on picture below.
+
+<img src="https://github.com/perdidor/Arduino-MDB-UART/blob/master/Docs/USBasp.PNG" width="600">
 
 For the programmer to work, you need a driver (not for all OS), you can download it on the device developer's website https://www.fischl.de/usbasp/
 
