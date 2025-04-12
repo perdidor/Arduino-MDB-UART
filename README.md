@@ -31,7 +31,7 @@ So, we need to do three operations: flash the hex file of the main program, flas
 **Prerequisities**:
 
 For the firmware upload, you will need:
-- avrdudeprog 3.3 software - https://yourdevice.net/downloads/avrdudeprog33.rar
+- avrdudeprog 3.3 software - included in repo
 
 - UsbASP programmer. The market is full of buggy fakes, order 2-3 at once, they are quite cheap*.
 
