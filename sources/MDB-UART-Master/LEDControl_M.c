@@ -47,9 +47,9 @@ void CCLED_OFF()
 
 void BVLED_ON()
 {
-	if (((PORTC >> PORTC7) & 1) != 1)
+	if (((PORTC >> PORTC5) & 1) != 1)
 	{
-		PORTC |= (1 << PORTC7);
+		PORTC |= (1 << PORTC5);
 		EXT_UART_Transmit(str_devonline);
 		EXT_UART_Transmit("BV");
 		EXT_CRLF();
@@ -58,9 +58,9 @@ void BVLED_ON()
 
 void BVLED_OFF()
 {
-	if (((PORTC >> PORTC7) & 1) == 1)
+	if (((PORTC >> PORTC5) & 1) == 1)
 	{
-		PORTC &= ~(1 << PORTC7);
+		PORTC &= ~(1 << PORTC5);
 		EXT_UART_Transmit(str_devlost);
 		EXT_UART_Transmit("BV");
 		EXT_CRLF();
@@ -115,12 +115,12 @@ void CHLED_OFF(uint8_t index)
 
 void CDLED_ON(uint8_t index)
 {
-	if (index) PORTC |= (1 << PORTC7); else PORTC |= (1 << PORTC6);
+	if (index) PORTC |= (1 << PORTC5); else PORTC |= (1 << PORTC6);
 }
 
 void CDLED_OFF(uint8_t index)
 {
-	if (index) PORTC &= ~(1 << PORTC7); else PORTC &= ~(1 << PORTC6);
+	if (index) PORTC &= ~(1 << PORTC5); else PORTC &= ~(1 << PORTC6);
 }
 
 void USDLED_ON(uint8_t index)

@@ -44,6 +44,7 @@ void InitAll()
 	EXT_UART_Transmit(Version);
 	//EXT_CRLF();
 	delay_1ms(1000);
+	
 }
 
 void Int32ToBCD(uint32_t InputInt, uint8_t *BCDArray[4])

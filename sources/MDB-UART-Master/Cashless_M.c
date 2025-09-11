@@ -771,7 +771,7 @@ void ReaderResponse(uint8_t index)
 			sprintf(tmpstr,"CD%d*DECNCL", index + 1);
 			EXT_UART_Transmit(tmpstr);
 			EXT_CRLF();
-			//The user has pushed the reader’s RETURN button before completing the
+			//The user has pushed the readerâ€™s RETURN button before completing the
 			//DATA ENTRY. The VMC should terminate all DATA ENTRY activity in
 			//progress.
 			break;

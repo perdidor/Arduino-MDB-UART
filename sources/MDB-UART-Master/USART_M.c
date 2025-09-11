@@ -16,14 +16,21 @@
 #include <avr/eeprom.h>
 #include <avr/pgmspace.h>
 #include "USART_M.h"
+#include "USART_M_conf.h"
+
+
+
+
+
 
 void MDB_Setup() {
 	// Set 9600-9-N-1 UART mode
-	UBRR0H = (MYUBRR>>8);
-	UBRR0L = MYUBRR;
-	UCSR0A &= ~(1 << U2X0);// Disable USART rate doubler
-	UCSR0C = (0<<UMSEL01)|(0<<UMSEL00)|(0<<UPM01)|(0<<UPM00)|(0<<USBS0)|(1<<UCSZ01)|(1<<UCSZ00);
-	UCSR0B |= (1<<UCSZ02)|(1<<RXEN0)|(1<<TXEN0); // 9bit
+	MDB_UBRRH = (MYUBRR>>8);
+	MDB_UBRRL = MYUBRR;
+	MDB_UCSR_A &= ~(1 << U2X0);// Disable USART rate doubler
+	MDB_UCSR_C = (0<<UMSEL1)|(0<<UMSEL0)|(0<<UPM1)|(0<<UPM0)|(0<<USBS)|(1<<UCSZ1)|(1<<UCSZ0);
+
+	MDB_UCSR_B |= (1<<UCSZ2)|(1<<RXEN)|(1<<TXEN); // 9bit
 }
 
 
@@ -31,8 +38,8 @@ void EXT_UART_Transmit(uint8_t data[])
 {
 	for (int i = 0; i < strlen(data); i++){
 		/* Wait for empty transmit buffer */
-		while (( UCSR1A & (1<<UDRE1))  == 0){};
-		if ((data[i] >= 32 && data[i] != 127) || (data[i] == 0x0d || data[i] == 0x0a)) UDR1 = data[i]; else break;
+		while (( EXT_UCSR_A & (1<<EXT_UDRE))  == 0){};
+		if ((data[i] >= 32 && data[i] != 127) || (data[i] == 0x0d || data[i] == 0x0a)) EXT_UDR = data[i]; else break;
 	}
 }
 
@@ -43,11 +50,11 @@ void EXT_CRLF()
 
 void EXT_UART_Setup()
 {
-	UBRR1H = (MYUBRR>>8);
-	UBRR1L = MYUBRR;
+	EXT_UBRRH = (MYUBRR>>8);
+	EXT_UBRRL = MYUBRR;
 	/* Set frame format: 8data, 2stop bit */
-	UCSR1C |= (1<< UCSZ10)|(1<< UCSZ11);
-	UCSR1B = (1 << TXEN1)|(1 << RXEN1)|(1<<RXCIE1);
+	EXT_UCSR_C |= (1<< UCSZ0)|(1<< UCSZ1);
+	EXT_UCSR_B = (1 << EXT_TXEN)|(1 << EXT_RXEN)|(1<<EXT_RXCIE);
 	sei();
 }
 
@@ -77,9 +84,9 @@ void delay_1ms(uint16_t ms) {
 	foo = 0;
 }
 
-ISR(USART1_RX_vect)
+ISR(EXT_USART_RX_vect)
 {
-	uint8_t tmp = UDR1;
+	uint8_t tmp = EXT_UDR;
 	if (EXTCMDCOMPLETE == 0)
 	{
 		if (tmp == 0x2b)
@@ -100,7 +107,7 @@ int MDB_Receive() {
 	uint8_t resh, resl;
 	int rtr = 0;
 	// Wait for data to be received, 20msec must fit...
-	while ((!(UCSR0A & (1<<RXC0))) && rtr < 20) {
+	while ((!(MDB_UCSR_A & (1<<MDB_RXC))) && rtr < 20) {
 		delay_1ms(1);
 		rtr++;
 	}
@@ -109,8 +116,8 @@ int MDB_Receive() {
 		MDBReceiveComplete = 1;
 	}
 	// Get 9th bit, then data from buffer
-	resh = UCSR0B;
-	resl = UDR0;
+	resh = MDB_UCSR_B;
+	resl = MDB_UDR;
 	// Filter the 9th bit, then return only data w\o mode bit
 	resh = (resh >> 1) & 0x01;
 	return ((resh << 8) | resl);
@@ -147,20 +154,20 @@ void MDB_Send(uint8_t data[], uint8_t len) {
 	MDBReceiveErrorFlag = 0;
 	MDBReceiveComplete = 0;
 	MDB_BUFFER_COUNT = 0;
-	while ( !( UCSR0A & (1<<UDRE0))) {};
-	UCSR0B |= (1<<TXB80);
-	UDR0 = data[0];
+	while ( !( MDB_UCSR_A & (1<<MDB_UDRE))) {};
+	MDB_UCSR_B |= (1<<MDB_TXB8);
+	MDB_UDR = data[0];
 	for (int i = 1; i < len; i++)
 	{
-		while ( !( UCSR0A & (1<<UDRE0))) {};
-		UCSR0B &= ~(1<<TXB80);
-		UDR0 = data[i];
+		while ( !( MDB_UCSR_A & (1<<MDB_UDRE))) {};
+		MDB_UCSR_B &= ~(1<<MDB_TXB8);
+		MDB_UDR = data[i];
 	}
 }
 
 void MDB_ACK() {
-	while ( !( UCSR0A & (1<<UDRE0)));
-	UCSR0B &= ~(1<<TXB80);
-	UDR0 = 0x00;// send ACK to MDB if peripheral answer is not just *ACK*, otherwise peripheral will try to send unconfirmed data with next polls
+	while ( !( MDB_UCSR_A & (1<<MDB_UDRE)));
+	MDB_UCSR_B &= ~(1<<MDB_TXB8);
+	MDB_UDR = 0x00;// send ACK to MDB if peripheral answer is not just *ACK*, otherwise peripheral will try to send unconfirmed data with next polls
 	//MDBDebug();
 }

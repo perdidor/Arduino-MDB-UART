@@ -531,7 +531,7 @@ void Reader_Vend(unsigned char index) {
 					return;
 				}
 				//send failure to cashless hardware, Funds should
-				//be refunded to user’s account.
+				//be refunded to userâ€™s account.
 				//no answer to poll until refund completed or failed
 				sprintf(buff, "CD%d#VENDFAIL\r\n", index + 1);
 				DebugMessage(buff);

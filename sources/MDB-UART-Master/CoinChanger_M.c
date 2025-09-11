@@ -15,6 +15,7 @@
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
 #include <avr/pgmspace.h>
+#include <avr/flash.h>
 #include "MDB_M.h"
 #include "USART_M.h"
 #include "CoinChanger_M.h"
@@ -180,10 +181,10 @@ void CoinChangerPollResponse()
 				case 11:
 				sprintf(statusbuff,"%s", "JUSTRESET");
 				//The following initialization sequence is recommended for all new VMCs
-				//designed after July, 2000. It should be used after ìpower upî, after issuing
+				//designed after July, 2000. It should be used after ‚Äúpower up‚Äù, after issuing
 				//the RESET command, after issuing the Bus Reset (pulling the transmit line
-				//ìactiveî for a minimum of 100 mS), or anytime a POLL command results in a
-				//ìJUST RESETî response (i.e., peripheral self resets).
+				//‚Äúactive‚Äù for a minimum of 100 mS), or anytime a POLL command results in a
+				//‚ÄúJUST RESET‚Äù response (i.e., peripheral self resets).
 				CoinChangerDevice.Status = 1;
 				CoinChangerDevice.OfflinePollsCount = 5;
 				sprintf(tmpstr,"CC*STATUS*%s\r\n", &statusbuff);

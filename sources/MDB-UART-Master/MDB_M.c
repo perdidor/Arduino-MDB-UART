@@ -22,6 +22,7 @@
 #include "Cashless_M.h"
 #include "Settings_M.h"
 #include "MDB_M.h"
+#include "USART_M_conf.h"
 
 void MDBDebug()
 {
@@ -138,12 +139,12 @@ void PollReader(uint8_t index)
 	MDBReceiveErrorFlag = 0;
 	MDBReceiveComplete = 0;
 	MDB_BUFFER_COUNT = 0;
-	while ( !( UCSR0A & (1<<UDRE0))) {};
-	UCSR0B |= (1<<TXB80);
-	UDR0 = addr;
-	while ( !( UCSR0A & (1<<UDRE0))) {};
-	UCSR0B &= ~(1<<TXB80);
-	UDR0 = addr;
+	while (!(EXT_UCSR_A & (1 << EXT_UDRE))) {};
+	EXT_UCSR_B |= (1 << MDB_TXB8);
+	EXT_UDR = addr;
+	while (!(EXT_UCSR_A & (1 << EXT_UDRE))) {};
+	EXT_UCSR_B &= ~(1 << MDB_TXB8);
+	EXT_UDR = addr;
 	ReaderProcessResponse(index, "");
 }
 
