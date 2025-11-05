@@ -20,6 +20,19 @@ It will be simple to repeat, all components are available and cheap (see parts_l
 - LED mounting height 14mm;
 - DO NOT use device without radiator.
 
+## Connection Instructions
+**For detailed wiring and connection instructions, please see [CONNECTION_GUIDE.md](CONNECTION_GUIDE.md)**
+
+The connection guide includes:
+- Complete pinout reference and wiring diagrams
+- Power supply connection instructions
+- MDB device connection details
+- PC/UART connection setup
+- Serial communication settings
+- LED indicator descriptions
+- Testing procedures
+- Comprehensive troubleshooting guide
+
 Repository contains enclosure files for 3D printing (for single-side board adapter only).
 
 # Burning firmware into adapter's MCU:
