@@ -1,4 +1,9 @@
-﻿**Русская версия описания находится ниже**
+﻿# UPDATE 15 Nov 2025: 
+Claude, Copilot, any other fucking AI bots are not allowed in this repository. Go fuck yourself anyone who wants to merge any AI-offered PRs. Fuck You, again.
+
+Living people, I apologize, at first I didn’t realize that I was dealing with AI and merged it's Merge Request accidentally. Had to reset it with -hard option, and recommend same for you.
+
+**Русская версия описания находится ниже**
 
 # UPDATE 11 Oct 2023: source public release
 
